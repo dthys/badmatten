@@ -99,6 +99,12 @@ def _uitpakken(waarde):
     return waarde
 
 
+def _tekst(waarde):
+    if waarde in (None, "") or isinstance(waarde, (list, dict)):
+        return ""
+    return str(waarde)
+
+
 def _dagen(van, tot):
     d = van
     while d <= tot:
@@ -431,9 +437,15 @@ def haal_facturen(client, ruw, eans, maanden):
                     # de winkelbrede totalen apart geteld, vóór de filter, en
                     # daaruit komt een tarief per verkocht stuk - precies zoals
                     # de eigen app van de verkoper het doet.
-                    if r["soort"] == "SHIPMENT_LABEL":
+                    omschrijving = r.get("omschrijving") or ""
+                    is_verzend = (r["soort"] == "SHIPMENT_LABEL"
+                                  or "verzend" in omschrijving
+                                  or "pakketzegel" in omschrijving)
+                    is_pickpack = (r["soort"] == "PICK_PACK"
+                                   or "pick" in omschrijving)
+                    if is_verzend:
                         deze["winkel"]["verzend"] += abs(r["bedrag"])
-                    elif r["soort"] == "PICK_PACK":
+                    elif is_pickpack:
                         deze["winkel"]["pickpack"] += abs(r["bedrag"])
                     elif r["soort"] == "TURNOVER":
                         deze["winkel"]["stuks"] += r["aantal"]
@@ -459,6 +471,23 @@ def haal_facturen(client, ruw, eans, maanden):
     # de oude database weg - anders staat hetzelfde bedrag er twee keer in.
     for maand in echte_maanden:
         facturen.pop("overgezet:" + maand, None)
+    # Het fulfilmenttarief hardop zeggen: dit is de post die het stilst fout
+    # kan gaan (verzendregels zonder EAN), dus hij hoort in het logboek.
+    per_maand = {}
+    for f in facturen.values():
+        w = f.get("winkel") or {}
+        if not w.get("stuks"):
+            continue
+        vak = per_maand.setdefault(f.get("maand") or "?",
+                                   {"verzend": 0.0, "pickpack": 0.0, "stuks": 0.0})
+        for veld in vak:
+            vak[veld] += float(w.get(veld) or 0)
+    for maand in sorted(per_maand)[-4:]:
+        v = per_maand[maand]
+        if v["stuks"]:
+            log(f"  fulfilment {maand}: verzenden EUR {v['verzend'] / v['stuks']:.2f} + "
+                f"pick&pack EUR {v['pickpack'] / v['stuks']:.2f} per stuk "
+                f"({int(v['stuks'])} stuks gefactureerd)")
     log(f"Facturen klaar ({len(facturen)} facturen bewaard)")
     return regels
 
@@ -522,9 +551,14 @@ def _spec_regels(spec):
             if bedrag:
                 break
         aantal = _f(_uitpakken(_ci(regel, "invoicedQuantity", "quantity")))
+        # De omschrijving erbij: het soort uit de regel-id is niet altijd
+        # ingevuld, en dan is "Verzendkosten" of "Pick&pack kosten" het enige
+        # dat de regel nog verraadt.
+        omschrijving = (_tekst(_uitpakken(_ci(item, "Description")))
+                        or _tekst(_uitpakken(_ci(item, "Name"))) or "")
         uit.append({"id": _s(regel, "id") or _s(regel, "invoiceLineRef"),
                     "soort": soort or "UNKNOWN", "ean": ean, "bedrag": bedrag,
-                    "aantal": abs(aantal)})
+                    "aantal": abs(aantal), "omschrijving": omschrijving.lower()})
     return uit
 
 
