@@ -1,0 +1,15 @@
+{
+  "producten": {
+    "5430004400141": {"naam": "Rood",       "titel": "Olivivo - Badmat - Rood - 50x80cm",       "kostprijs": 3.50, "btw": 21},
+    "5430004400158": {"naam": "Beige",      "titel": "Olivivo - Badmat - Beige - 50x80cm",      "kostprijs": 3.50, "btw": 21},
+    "5430004400110": {"naam": "Marine",     "titel": "Olivivo - Badmat - Marine - 50x80cm",     "kostprijs": 3.50, "btw": 21},
+    "5430004400080": {"naam": "Lichtgrijs", "titel": "Olivivo - Badmat - Lichtgrijs - 50x80cm", "kostprijs": 3.50, "btw": 21}
+  },
+  "voorraad": {
+    "5430004400141": {"thuis": 0, "fulfilment": 0},
+    "5430004400158": {"thuis": 0, "fulfilment": 0},
+    "5430004400110": {"thuis": 0, "fulfilment": 0},
+    "5430004400080": {"thuis": 0, "fulfilment": 0}
+  },
+  "btw": 21
+}
