@@ -24,10 +24,14 @@ on:
     - cron: "17 * * * *"      # elk uur op :17 (UTC)
   workflow_dispatch:           # ook handmatig te starten via de knop Run workflow
     inputs:
-      opnieuw_beginnen:
-        description: "Historie weggooien en opnieuw opbouwen (alleen na het wijzigen van de code)"
-        type: boolean
-        default: false
+      bron:
+        description: "Waar begint deze ronde mee?"
+        type: choice
+        default: gepubliceerd
+        options:
+          - gepubliceerd     # normaal: verder op de stand die online staat
+          - repo             # herstel: verder op de data.json uit de repo
+          - leeg             # opnieuw opbouwen uit wat bol nog heeft
 
 permissions:
   contents: read
@@ -62,11 +66,14 @@ jobs:
           # bij een eigen domein), zet dan de repository-variabele PAGES_URL.
           PAGES_URL: ${{ vars.PAGES_URL }}
         run: |
-          if [ "${{ inputs.opnieuw_beginnen }}" = "true" ]; then
-            echo "Opnieuw beginnen aangevinkt - de vorige stand wordt niet opgehaald."
-            rm -f data.json
-            exit 0
-          fi
+          case "${{ inputs.bron }}" in
+            repo)
+              echo "Bron 'repo': verder op de data.json die in de repo staat."
+              ls -l data.json && exit 0 ;;
+            leeg)
+              echo "Bron 'leeg': historie wordt opnieuw opgebouwd uit wat bol nog heeft."
+              rm -f data.json && exit 0 ;;
+          esac
           # Uit GITHUB_REPOSITORY afgeleid en niet uit github.event: dat object
           # ziet er per soort gebeurtenis anders uit, en een lege repo-naam zou
           # hier stilletjes een verkeerd adres opleveren.
@@ -99,7 +106,7 @@ jobs:
           # De code waarmee data.json versleuteld wordt: dezelfde die achter
           # het #-teken staat in de link die je aan je partner geeft.
           DATA_SLEUTEL: ${{ secrets.DATA_SLEUTEL }}
-          HERSTART: ${{ inputs.opnieuw_beginnen && '1' || '' }}
+          HERSTART: ${{ inputs.bron == 'leeg' && '1' || '' }}
           # Kostprijzen, btw en de voorraad thuis / bij je fulfilmentpartner.
           INSTELLINGEN: ${{ secrets.INSTELLINGEN }}
         run: python ververs/ververs.py
