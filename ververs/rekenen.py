@@ -284,6 +284,23 @@ def bereken(ruw, instellingen, vandaag=None):
     if alle_maanden:
         alle_maanden = _maanden_tussen(alle_maanden[0], max(alle_maanden[-1],
                                                             _maand(vandaag_iso)))
+    # PICK&PACK VOLGT DE VERKOOP, OPSLAG VOLGT DE FACTUUR.
+    #
+    # Hier stond eerst: voor een gefactureerde maand de echte factuurbedragen,
+    # anders het tarief. Dat leek nauwkeuriger en was het niet, want het ging
+    # uit van iets wat niet klopt: bol factureert per PERIODE, en die periode
+    # valt niet samen met de maand waarin je verkocht. Op het echte account
+    # stonden in de aprilfactuur veertig stuks tegenover negen bestellingen die
+    # wij van april kennen, en in juni juist andersom. Er zat zelfs een
+    # correctie op die het verschil "wegschaalde" - dus kosten die je echt
+    # gemaakt hebt werden kleiner gerekend omdat de maanden niet matchten.
+    #
+    # Nu: pick&pack is een kost PER VERKOCHT STUK, dus die rekenen we per stuk,
+    # met het tarief uit je eigen facturen. Opslag hangt aan voorraad en niet
+    # aan verkoop, dus die blijft in de maand staan waarin bol hem factureerde.
+    # Over de hele periode kloppen de totalen; per maand schuift er hooguit een
+    # paar dagen fulfilment mee met de verkoop, en dat is precies waar je hem
+    # wilt hebben.
     schatting_maanden, deel_maanden = [], []
     eerste_verkoop = min((m for (m, _e) in per_me if per_me[(m, _e)]["stuks"]),
                          default=None)
@@ -294,31 +311,13 @@ def bereken(ruw, instellingen, vandaag=None):
         for ean in eans:
             k = per_me[(maand, ean)]
             stuks = k["stuks"]
+            k["pickpack"] = tarief_pickpack * stuks
             if maand_is_gefactureerd:
-                # HOEVEEL VAN DEZE MAAND KENNEN WE?
-                #
-                # De factuur beslaat de hele maand; onze bestelhistorie soms
-                # maar een deel ervan (bol geeft drie maanden terug, ouder komt
-                # uit de eenmalige overzet). Zetten we dan de volle maandkosten
-                # naast een halve maand omzet, dan staat die maand op verlies
-                # terwijl er niets aan de hand is. Daarom schalen we de kosten
-                # mee met het deel van de maand dat we echt kennen.
-                gefactureerde_stuks = fact_aantal.get((maand, ean), 0)
-                deel = 1.0
-                if gefactureerde_stuks and stuks < gefactureerde_stuks * 0.98:
-                    deel = stuks / gefactureerde_stuks
-                    if maand not in deel_maanden:
-                        deel_maanden.append(maand)
-                k["pickpack"] = deel * (
-                    fact_bedrag.get((maand, ean, "PICK_PACK"), 0.0)
-                    + fact_bedrag.get((maand, ean, "SHIPMENT_LABEL"), 0.0))
-                k["opslag"] = deel * fact_bedrag.get((maand, ean, "STORAGE"), 0.0)
-                k["onvolledig"] = deel < 1.0
+                k["opslag"] = fact_bedrag.get((maand, ean, "STORAGE"), 0.0)
             else:
-                k["pickpack"] = tarief_pickpack * stuks
-                # Opslag hangt aan voorraad, niet aan verkoop. Alleen ramen voor
-                # maanden waarin er ook echt iets gebeurde: anders krijgt een
-                # maand van voor de eerste verkoop opslagkosten uit het niets.
+                # Opslag ramen alleen voor maanden waarin er ook echt iets
+                # gebeurde; anders krijgt een maand van vóór de eerste verkoop
+                # opslagkosten uit het niets.
                 raam = stuks > 0 or maand == _maand(vandaag_iso)
                 if eerste_verkoop and maand < eerste_verkoop:
                     raam = False
@@ -326,6 +325,15 @@ def bereken(ruw, instellingen, vandaag=None):
                 if maand == _maand(vandaag_iso):
                     deel = vandaag.day / float(_dagen_in_maand(maand))
                 k["opslag"] = opslag_gemiddeld(ean) * deel if raam else 0.0
+
+            # Weet bol van meer verkochte stuks dan wij bestellingen kennen, dan
+            # is onze bestelhistorie van die maand onvolledig - bol geeft
+            # bestellingen ouder dan drie maanden niet meer terug. Alleen
+            # melden, niet stiekem bijschatten.
+            gefactureerd_stuks = fact_aantal.get((maand, ean), 0)
+            if gefactureerd_stuks and stuks < gefactureerd_stuks * 0.9:
+                if maand not in deel_maanden:
+                    deel_maanden.append(maand)
             k["ads"] = ads_per_me.get((maand, ean), 0.0)
             k["bestellingen"] = len(orders_per_me.get((maand, ean), ()))
             k["winst"] = (k["omzet_excl"] - k["commissie"] - k["pickpack"]
@@ -440,7 +448,7 @@ def bereken(ruw, instellingen, vandaag=None):
             "pickpack_per_stuk": round(tarief_pickpack, 3),
             "gefactureerde_maanden": sorted(gefactureerd),
             "geschatte_maanden": schatting_maanden,
-            "onvolledige_maanden": deel_maanden,
+            "onvolledige_maanden": sorted(deel_maanden),
         },
     }
 

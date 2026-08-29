@@ -190,6 +190,7 @@ def haal_orders(client, ruw, eans, vanaf):
         if len(lijst) < 50:
             break
 
+    ruw.setdefault("stand", {})["orders_tot"] = vandaag.isoformat()
     log(f"Bestellingen klaar ({len(regels)} regels bewaard, {nieuw} nieuw)")
     return nieuw
 
@@ -392,6 +393,7 @@ def haal_facturen(client, ruw, eans, maanden):
             # zodat een gecorrigeerde factuur geen dubbeltelling oplevert maar
             # de andere facturen van dezelfde periode blijven staan.
             deze = {"maand": maand, "posten": {}, "aantal": {}}
+            gezien = set()
             for pagina in range(1, 21):
                 try:
                     spec = client.factuurspecificatie(inv_id, pagina)
@@ -401,7 +403,19 @@ def haal_facturen(client, ruw, eans, maanden):
                 rijen = _spec_regels(spec)
                 if not rijen:
                     break
-                for r in rijen:
+                # NIET ELKE SPECIFICATIE PAGINEERT.
+                #
+                # Bol negeert de page-parameter op dit endpoint en stuurt elke
+                # keer dezelfde regels terug. De lus telde die dus twintig keer
+                # op: de aprilfactuur kwam uit op veertig verkochte stuks en
+                # vijfennegentig euro pick&pack, terwijl er negen matten waren
+                # verkocht. Elke regel heeft een eigen id; levert een pagina
+                # niets nieuws op, dan zijn we klaar.
+                vers = [r for r in rijen if r["id"] and r["id"] not in gezien]
+                if not vers:
+                    break
+                gezien.update(r["id"] for r in vers)
+                for r in vers:
                     if r["ean"] not in eans or r["soort"] not in TYPES:
                         continue
                     sleutel = f"{r['ean']}|{r['soort']}"
@@ -486,7 +500,8 @@ def _spec_regels(spec):
             if bedrag:
                 break
         aantal = _f(_uitpakken(_ci(regel, "invoicedQuantity", "quantity")))
-        uit.append({"soort": soort or "UNKNOWN", "ean": ean, "bedrag": bedrag,
+        uit.append({"id": _s(regel, "id") or _s(regel, "invoiceLineRef"),
+                    "soort": soort or "UNKNOWN", "ean": ean, "bedrag": bedrag,
                     "aantal": abs(aantal)})
     return uit
 
@@ -684,13 +699,21 @@ def main():
         # bestellingen voorgoed overslaan - bol geeft ze na drie maanden niet
         # meer terug.
         vanaf = vandaag - timedelta(days=ORDER_VENSTER)
-        laatste = max((r.get("dag") or "")
-                      for r in ruw.get("orderregels", {}).values())
-        if laatste:
+        # Vanaf WAAR WE LAATST HEBBEN OPGEHAALD, niet vanaf de laatste
+        # bestelling die we kennen. Dat scheelt: na een stille week is de
+        # laatste bestelling ook van een week geleden en lijkt er geen gat te
+        # zijn, terwijl de dagen ertussen nooit zijn opgehaald. Zo bleef er een
+        # gat van 5 tot 20 augustus staan waar wél verkocht was.
+        tot = (ruw.get("stand") or {}).get("orders_tot")
+        if tot:
             try:
-                vanaf = min(vanaf, date.fromisoformat(laatste) - timedelta(days=2))
+                vanaf = min(vanaf, date.fromisoformat(tot) - timedelta(days=2))
             except ValueError:
                 pass
+        else:
+            # Nog nooit een markering gezet (bv. historie uit de overzet): één
+            # keer het volle venster, dan weten we het zeker.
+            vanaf = vandaag - timedelta(days=MAX_HISTORIE_DAGEN)
         vanaf = max(vanaf, vandaag - timedelta(days=MAX_HISTORIE_DAGEN))
     fouten = []
 
