@@ -3,21 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#fcfcfb" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#161615" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f4f4f1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#111110" media="(prefers-color-scheme: dark)">
 <meta name="robots" content="noindex, nofollow">
 <title>Badmatten</title>
-<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%232a78d6'/%3E%3Crect x='22' y='34' width='56' height='34' rx='8' fill='%23fff'/%3E%3C/svg%3E">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%232a78d6'/%3E%3Crect x='22' y='34' width='56' height='34' rx='8' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%232a78d6'/%3E%3Crect x='22' y='34' width='56' height='34' rx='8' fill='%23fff'/%3E%3C/svg%3E">
 <style>
 :root{
   color-scheme: light;
   --bg:#f4f4f1; --surface:#fcfcfb; --surface-2:#f0efec;
-  --line:#e2e1dc; --line-strong:#cfceC8;
+  --line:#e2e1dc; --line-strong:#cfcec8;
   --ink:#0b0b0b; --ink-2:#52514e; --ink-3:#84837d;
-  --omzet:#2a78d6; --winst:#1baf7a; --slecht:#c8322f; --waarschuwing:#a06400;
-  --bar:#d5d4cf;
-  --radius:14px;
+  --blauw:#2a78d6; --groen:#1baf7a; --rood:#c8322f; --oranje:#a06400;
+  --bar:#d9d8d3;
   --schaduw:0 1px 2px rgba(0,0,0,.05), 0 1px 8px rgba(0,0,0,.03);
 }
 @media (prefers-color-scheme: dark){
@@ -26,102 +25,64 @@
     --bg:#111110; --surface:#1a1a19; --surface-2:#232322;
     --line:#2f2f2d; --line-strong:#3f3f3c;
     --ink:#f5f5f0; --ink-2:#b3b2aa; --ink-3:#86857e;
-    --omzet:#3987e5; --winst:#199e70; --slecht:#e66767; --waarschuwing:#e0a52a;
-    --bar:#34342f;
-    --schaduw:none;
+    --blauw:#3987e5; --groen:#199e70; --rood:#e66767; --oranje:#e0a52a;
+    --bar:#34342f; --schaduw:none;
   }
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
-body{
-  background:var(--bg); color:var(--ink);
+body{background:var(--bg);color:var(--ink);
   font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
-  -webkit-font-smoothing:antialiased;
-  padding:0 0 env(safe-area-inset-bottom);
-}
-.wrap{max-width:760px;margin:0 auto;padding:0 14px 48px}
+  -webkit-font-smoothing:antialiased;padding-bottom:env(safe-area-inset-bottom)}
+.wrap{max-width:820px;margin:0 auto;padding:0 14px 48px}
 h1,h2,h3{margin:0;font-weight:600}
 .num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
 
-/* ---------------------------------------------------------------- kop */
-header{
-  position:sticky;top:0;z-index:20;background:var(--bg);
-  padding:calc(10px + env(safe-area-inset-top)) 14px 8px;
-  border-bottom:1px solid var(--line);
-}
-header .binnen{max-width:760px;margin:0 auto;display:flex;align-items:center;gap:10px}
+header{position:sticky;top:0;z-index:30;background:var(--bg);
+  padding:calc(10px + env(safe-area-inset-top)) 14px 0;border-bottom:1px solid var(--line)}
+header .binnen{max-width:820px;margin:0 auto}
+.kop{display:flex;align-items:center;gap:10px;padding-bottom:8px}
 .merk{display:flex;align-items:center;gap:9px;min-width:0}
-.stip{width:22px;height:22px;border-radius:7px;background:var(--omzet);flex:0 0 auto;
-  display:grid;place-items:center}
+.stip{width:22px;height:22px;border-radius:7px;background:var(--blauw);flex:0 0 auto;display:grid;place-items:center}
 .stip::after{content:"";width:12px;height:7px;border-radius:2px;background:#fff}
 .merk h1{font-size:16px;letter-spacing:-.01em}
 .bijgewerkt{color:var(--ink-3);font-size:11.5px;margin-left:auto;text-align:right;line-height:1.25}
 
-/* ------------------------------------------------------------- periode */
-.periode{display:flex;gap:6px;overflow-x:auto;padding:10px 0 2px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
-.periode::-webkit-scrollbar{display:none}
-.chip{
-  flex:0 0 auto;border:1px solid var(--line-strong);background:var(--surface);
-  color:var(--ink-2);border-radius:999px;padding:6px 13px;font-size:13px;
-  font-variant-numeric:tabular-nums;cursor:pointer;white-space:nowrap;
-}
+.rij{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.rij::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;border:1px solid var(--line-strong);background:var(--surface);color:var(--ink-2);
+  border-radius:999px;padding:5px 12px;font-size:12.5px;cursor:pointer;white-space:nowrap;font-family:inherit}
 .chip[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
-
-/* ---------------------------------------------------------------- tabs */
-nav.tabs{display:flex;gap:2px;margin:12px 0 0;border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none}
+nav.tabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
 nav.tabs::-webkit-scrollbar{display:none}
-nav.tabs button{
-  flex:0 0 auto;background:none;border:0;border-bottom:2px solid transparent;
-  color:var(--ink-3);font:inherit;font-size:14px;padding:9px 11px;cursor:pointer;
-}
-nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--omzet);font-weight:550}
+nav.tabs button{flex:0 0 auto;background:none;border:0;border-bottom:2px solid transparent;
+  color:var(--ink-3);font:inherit;font-size:14px;padding:9px 11px;cursor:pointer}
+nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--blauw);font-weight:550}
+.subtabs{display:flex;gap:6px;margin:12px 0 2px;flex-wrap:wrap}
+.subtabs button{background:var(--surface-2);border:1px solid transparent;color:var(--ink-2);
+  border-radius:9px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
+.subtabs button[aria-selected="true"]{background:var(--surface);border-color:var(--line-strong);color:var(--ink);font-weight:550}
 
-/* --------------------------------------------------------------- kaart */
-.kaart{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+.periode-eigen{display:flex;gap:8px;align-items:center;margin:10px 0 0;font-size:13px;color:var(--ink-2);flex-wrap:wrap}
+.periode-eigen input{padding:7px 9px;border-radius:9px;border:1px solid var(--line-strong);
+  background:var(--surface);color:var(--ink);font:inherit;font-size:13px}
+.bereik{font-size:11.5px;color:var(--ink-3);padding:2px 0 8px}
+
+.kaart{background:var(--surface);border:1px solid var(--line);border-radius:14px;
   box-shadow:var(--schaduw);padding:14px;margin-top:12px}
-.kaart h2{font-size:13px;color:var(--ink-2);font-weight:600;letter-spacing:.01em;margin-bottom:10px}
+.kaart h2{font-size:13px;color:var(--ink-2);font-weight:600;margin-bottom:10px}
 
-/* --------------------------------------------------------------- kpi's */
-.kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
-.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
-  box-shadow:var(--schaduw);padding:12px 13px}
-.kpi .label{font-size:11.5px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em}
-.kpi .waarde{font-size:25px;font-weight:600;letter-spacing:-.02em;margin-top:3px;line-height:1.1}
-.kpi .onder{font-size:12px;color:var(--ink-2);margin-top:3px}
-.kpi.groot{grid-column:span 2}
-.pos{color:var(--winst)} .neg{color:var(--slecht)}
+.tegels{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.tegel{background:var(--surface);border:1px solid var(--line);border-radius:14px;
+  box-shadow:var(--schaduw);padding:12px 13px;min-width:0}
+.tegel .label{font-size:11px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tegel .waarde{font-size:24px;font-weight:600;letter-spacing:-.02em;margin-top:3px;line-height:1.15}
+.tegel .onder{font-size:12px;color:var(--ink-2);margin-top:2px}
+.tegel.breed{grid-column:span 2}
+.tegel.breed .waarde{font-size:30px}
+.pos{color:var(--groen)} .neg{color:var(--rood)}
 
-/* -------------------------------------------------------- kostenopbouw */
-.opbouw{display:flex;flex-direction:column;gap:9px}
-.regel{display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:baseline}
-.regel .naam{font-size:13.5px}
-.regel .bedrag{font-size:13.5px;font-weight:550}
-.regel .spoor{grid-column:1/-1;height:6px;border-radius:3px;background:var(--bar);overflow:hidden}
-.regel .vulling{height:100%;border-radius:3px;background:var(--ink-3)}
-.regel.kop .naam,.regel.kop .bedrag{font-weight:600;font-size:15px}
-.regel.kop .vulling{background:var(--omzet)}
-.regel.slot{border-top:1px solid var(--line);padding-top:9px;margin-top:2px}
-.regel.slot .naam,.regel.slot .bedrag{font-weight:600;font-size:16px}
-.regel.slot .vulling{background:var(--winst)}
-.regel.slot.min .vulling{background:var(--slecht)}
-.regel .toel{grid-column:1/-1;font-size:11.5px;color:var(--ink-3)}
-
-/* -------------------------------------------------------------- grafiek */
-.chart{position:relative;height:152px;display:flex;gap:3px;align-items:stretch}
-.chart .nul{position:absolute;left:0;right:0;height:1px;background:var(--line-strong)}
-.kolom{flex:1;position:relative;min-width:0}
-.balk{position:absolute;border-radius:3px;min-height:2px}
-.balk.min{border-radius:0 0 3px 3px}
-.aslabels,.aswaarden{display:grid;gap:0;text-align:center;font-variant-numeric:tabular-nums}
-.aslabels{margin-top:6px;font-size:10.5px;color:var(--ink-3)}
-.aswaarden{margin-top:3px;font-size:10.5px;line-height:1.35}
-.aslabels div{white-space:nowrap;overflow:visible}
-.aswaarden div{overflow:hidden;white-space:nowrap}
-.legenda{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--ink-2);margin-top:8px}
-.legenda span{display:inline-flex;align-items:center;gap:6px}
-.legenda i{width:10px;height:10px;border-radius:3px;display:inline-block}
-
-/* ---------------------------------------------------------------- lijst */
 .lijst{display:flex;flex-direction:column}
 .item{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:11px 0;border-top:1px solid var(--line)}
 .item:first-child{border-top:0}
@@ -129,27 +90,35 @@ nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(-
 .item .sub{font-size:12px;color:var(--ink-3);grid-column:1}
 .item .rechts{text-align:right;font-size:14px;font-weight:550;white-space:nowrap}
 .item .rechts small{display:block;font-weight:400;font-size:11.5px;color:var(--ink-3)}
+.dagkop{font-size:11.5px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em;
+  padding:14px 0 4px;border-top:1px solid var(--line);margin-top:2px}
+.dagkop:first-child{border-top:0;padding-top:2px;margin-top:0}
 .vlag{display:inline-block;font-size:11px;color:var(--ink-2);background:var(--surface-2);
   border-radius:5px;padding:1px 6px;margin-left:6px;vertical-align:1px}
-.vlag.retour{color:var(--waarschuwing)}
+.vlag.retour{color:var(--oranje)}
 
-/* --------------------------------------------------------------- tabel */
 .tabelwrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -14px;padding:0 14px}
 table{border-collapse:collapse;width:100%;font-size:13px;font-variant-numeric:tabular-nums}
 th,td{text-align:right;padding:7px 8px;white-space:nowrap;border-top:1px solid var(--line)}
-th{color:var(--ink-3);font-weight:500;font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;border-top:0}
+th{color:var(--ink-3);font-weight:500;font-size:11px;text-transform:uppercase;letter-spacing:.04em;border-top:0}
 th:first-child,td:first-child{text-align:left;position:sticky;left:0;background:var(--surface)}
+tr.totaal td{font-weight:600;border-top:2px solid var(--line-strong)}
+tr.sub td:first-child{padding-left:20px;color:var(--ink-2);font-weight:400}
 
-/* ------------------------------------------------------------- voorraad */
+.spoor{height:6px;border-radius:3px;background:var(--bar);overflow:hidden;margin-top:6px}
+.vulling{height:100%;border-radius:3px;background:var(--ink-3)}
 .staaf{display:flex;height:9px;border-radius:5px;overflow:hidden;background:var(--bar);gap:2px;margin-top:8px}
 .staaf i{display:block;height:100%}
+.legenda{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--ink-2);margin-top:8px}
+.legenda span{display:inline-flex;align-items:center;gap:6px}
+.legenda i{width:10px;height:10px;border-radius:3px;display:inline-block}
 
-/* ------------------------------------------------------------ meldingen */
 .melding{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;
   padding:10px 12px;font-size:12.5px;color:var(--ink-2);margin-top:12px}
-.leeg{color:var(--ink-3);font-size:13.5px;padding:22px 0;text-align:center}
+.leeg{color:var(--ink-3);font-size:13.5px;padding:26px 0;text-align:center}
+.zoek{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--line-strong);
+  background:var(--surface);color:var(--ink);font:inherit;font-size:14px;margin-bottom:6px}
 
-/* ---------------------------------------------------------------- slot */
 .slotscherm{max-width:340px;margin:16vh auto;padding:0 18px;text-align:center}
 .slotscherm .stip{width:44px;height:44px;border-radius:13px;margin:0 auto 16px}
 .slotscherm .stip::after{width:24px;height:13px;border-radius:3px}
@@ -159,63 +128,57 @@ th:first-child,td:first-child{text-align:left;position:sticky;left:0;background:
   background:var(--surface);color:var(--ink);font:inherit;text-align:center}
 .slotscherm button{width:100%;margin-top:10px;padding:12px;border-radius:11px;border:0;
   background:var(--ink);color:var(--surface);font:inherit;font-weight:600;cursor:pointer}
-.fout{color:var(--slecht);font-size:13px;margin-top:12px;min-height:18px}
+.fout{color:var(--rood);font-size:13px;margin-top:12px;min-height:18px}
 .laden{text-align:center;color:var(--ink-3);padding:22vh 0;font-size:14px}
 .spinner{width:26px;height:26px;border:2.5px solid var(--line-strong);border-top-color:var(--ink-3);
   border-radius:50%;margin:0 auto 14px;animation:draai .8s linear infinite}
 @keyframes draai{to{transform:rotate(360deg)}}
-.zoek{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--line-strong);
-  background:var(--surface);color:var(--ink);font:inherit;font-size:14px;margin-bottom:4px}
 .voet{color:var(--ink-3);font-size:11.5px;text-align:center;margin-top:26px;line-height:1.6}
 </style>
 </head>
 <body>
 <div id="app"><div class="laden"><div class="spinner"></div>Gegevens laden…</div></div>
-
 <script>
 "use strict";
 const app = document.getElementById("app");
-const SLEUTELOPSLAG = "badmatten-sleutel";
-let D = null, periode = "alles", tab = "overzicht", zoekterm = "";
+const OPSLAG = "badmatten-sleutel";
+let D = null, tab = "home", subtab = "op-datum", zoekterm = "";
+let preset = "deze-maand", van = "", tot = "";
 
-/* ------------------------------------------------------------ opmaak */
+/* ------------------------------------------------------------- opmaak */
 const euro = n => (n < 0 ? "−" : "") + "€" +
-  Math.abs(n).toLocaleString("nl-BE", {minimumFractionDigits: 2, maximumFractionDigits: 2});
-const euro0 = n => (n < 0 ? "−" : "") + "€" +
-  Math.abs(n).toLocaleString("nl-BE", {maximumFractionDigits: 0});
+  Math.abs(n || 0).toLocaleString("nl-BE", {minimumFractionDigits:2, maximumFractionDigits:2});
+const getal = n => (n || 0).toLocaleString("nl-BE");
 const MAANDEN = ["januari","februari","maart","april","mei","juni","juli",
                  "augustus","september","oktober","november","december"];
-const maandNaam = m => MAANDEN[+m.slice(5,7) - 1] + " " + m.slice(0,4);
-const maandKort = m => MAANDEN[+m.slice(5,7) - 1].slice(0,3) + " " + m.slice(2,4);
-const datumKort = d => {
-  if (!d) return "";
-  const [j,m,dag] = d.split("-");
-  return +dag + " " + MAANDEN[+m - 1].slice(0,3);
-};
 const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g,
   c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+const iso = d => d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") +
+                 "-" + String(d.getDate()).padStart(2,"0");
+const datumKort = d => d ? (+d.slice(8) + " " + MAANDEN[+d.slice(5,7)-1].slice(0,3)) : "";
+const datumLang = d => d ? (+d.slice(8) + " " + MAANDEN[+d.slice(5,7)-1] + " " + d.slice(0,4)) : "";
+const komma = (n, cijfers) => (n || 0).toFixed(cijfers).replace(".", ",");
 
-/* --------------------------------------------------------- ontsleutelen */
+/* -------------------------------------------------------- ontsleutelen */
 const b64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
-
-async function ontsleutel(blok, wachtwoord){
-  const basis = await crypto.subtle.importKey(
-    "raw", new TextEncoder().encode(wachtwoord), "PBKDF2", false, ["deriveKey"]);
+async function ontsleutel(blok, ww){
+  const basis = await crypto.subtle.importKey("raw", new TextEncoder().encode(ww),
+    "PBKDF2", false, ["deriveKey"]);
   const sleutel = await crypto.subtle.deriveKey(
-    {name:"PBKDF2", salt: b64(blok.zout), iterations: blok.rondes || 200000, hash:"SHA-256"},
+    {name:"PBKDF2", salt:b64(blok.zout), iterations:blok.rondes||200000, hash:"SHA-256"},
     basis, {name:"AES-GCM", length:256}, false, ["decrypt"]);
   let plat = new Uint8Array(await crypto.subtle.decrypt(
-    {name:"AES-GCM", iv: b64(blok.iv)}, sleutel, b64(blok.data)));
+    {name:"AES-GCM", iv:b64(blok.iv)}, sleutel, b64(blok.data)));
   if (blok.gz){
     if (typeof DecompressionStream === "undefined")
       throw new Error("Deze browser is te oud om het bestand uit te pakken.");
-    const stroom = new Blob([plat]).stream().pipeThrough(new DecompressionStream("gzip"));
-    plat = new Uint8Array(await new Response(stroom).arrayBuffer());
+    const s = new Blob([plat]).stream().pipeThrough(new DecompressionStream("gzip"));
+    plat = new Uint8Array(await new Response(s).arrayBuffer());
   }
   return JSON.parse(new TextDecoder().decode(plat));
 }
 
-/* --------------------------------------------------------------- starten */
+/* --------------------------------------------------------------- start */
 async function start(){
   let sleutel = "";
   const hash = location.hash.replace(/^#/, "");
@@ -223,13 +186,12 @@ async function start(){
   if (m) sleutel = decodeURIComponent(m[1]);
   else if (hash && !hash.includes("=")) sleutel = decodeURIComponent(hash);
   if (sleutel){
-    try { localStorage.setItem(SLEUTELOPSLAG, sleutel); } catch(e){}
+    try { localStorage.setItem(OPSLAG, sleutel); } catch(e){}
     history.replaceState(null, "", location.pathname + location.search);
   } else {
-    try { sleutel = localStorage.getItem(SLEUTELOPSLAG) || ""; } catch(e){}
+    try { sleutel = localStorage.getItem(OPSLAG) || ""; } catch(e){}
   }
   if (!sleutel) return toonSlot("");
-
   let blok;
   try {
     const r = await fetch("data.json?t=" + Date.now(), {cache:"no-store"});
@@ -240,28 +202,25 @@ async function start(){
       'geladen worden (' + esc(e.message) + '). Probeer het zo nog eens.</div></div>';
     return;
   }
-  try {
-    D = await ontsleutel(blok, sleutel);
-  } catch(e){
-    try { localStorage.removeItem(SLEUTELOPSLAG); } catch(_){}
+  try { D = await ontsleutel(blok, sleutel); }
+  catch(e){
+    try { localStorage.removeItem(OPSLAG); } catch(_){}
     return toonSlot("Die code klopt niet.");
   }
+  zetPreset("deze-maand");
   teken();
 }
 
 function toonSlot(fout){
-  app.innerHTML =
-    '<div class="slotscherm"><div class="stip"></div>' +
-    '<h1>Badmatten</h1><p>Vul de code in die je gekregen hebt. Daarna onthoudt ' +
-    'deze telefoon hem.</p>' +
-    '<input id="code" type="password" autocomplete="current-password" ' +
-    'placeholder="code" inputmode="text" autocapitalize="off" autocorrect="off">' +
-    '<button id="open">Openen</button>' +
-    '<div class="fout">' + esc(fout) + '</div></div>';
+  app.innerHTML = '<div class="slotscherm"><div class="stip"></div><h1>Badmatten</h1>' +
+    '<p>Vul de code in die je gekregen hebt. Daarna onthoudt deze telefoon hem.</p>' +
+    '<input id="code" type="password" autocomplete="current-password" placeholder="code" ' +
+    'inputmode="text" autocapitalize="off" autocorrect="off">' +
+    '<button id="open">Openen</button><div class="fout">' + esc(fout) + '</div></div>';
   const veld = document.getElementById("code");
   const gaan = () => {
     if (!veld.value.trim()) return;
-    try { localStorage.setItem(SLEUTELOPSLAG, veld.value.trim()); } catch(e){}
+    try { localStorage.setItem(OPSLAG, veld.value.trim()); } catch(e){}
     app.innerHTML = '<div class="laden"><div class="spinner"></div>Gegevens laden…</div>';
     start();
   };
@@ -270,389 +229,548 @@ function toonSlot(fout){
   veld.focus();
 }
 
-/* ------------------------------------------------------------- selectie */
-function huidig(){
-  if (periode === "alles") return {kpi: D.totaal, producten: perProductAlles(), geschat: false};
-  const m = D.per_maand[periode] || {totaal:{}, producten:{}};
-  return {kpi: m.totaal, producten: m.producten, geschat: !!m.totaal.geschat};
+/* ------------------------------------------------------------- periode */
+const PRESETS = [
+  ["vandaag","Vandaag"], ["gisteren","Gisteren"],
+  ["deze-week","Deze week"], ["vorige-week","Vorige week"],
+  ["deze-maand","Deze maand"], ["vorige-maand","Vorige maand"],
+  ["dit-jaar","Dit jaar"], ["vorig-jaar","Vorig jaar"], ["aangepast","Aangepast"],
+];
+
+function zetPreset(naam){
+  preset = naam;
+  const nu = new Date(); nu.setHours(12,0,0,0);
+  const dag = (d, n) => { const x = new Date(d); x.setDate(x.getDate()+n); return x; };
+  // Maandag als eerste dag van de week.
+  const maandag = d => dag(d, -((d.getDay() + 6) % 7));
+  let a = nu, b = nu;
+  if (naam === "vandaag"){ a = b = nu; }
+  else if (naam === "gisteren"){ a = b = dag(nu, -1); }
+  else if (naam === "deze-week"){ a = maandag(nu); b = nu; }
+  else if (naam === "vorige-week"){ a = dag(maandag(nu), -7); b = dag(a, 6); }
+  else if (naam === "deze-maand"){ a = new Date(nu.getFullYear(), nu.getMonth(), 1); b = nu; }
+  else if (naam === "vorige-maand"){
+    a = new Date(nu.getFullYear(), nu.getMonth()-1, 1);
+    b = new Date(nu.getFullYear(), nu.getMonth(), 0);
+  }
+  else if (naam === "dit-jaar"){ a = new Date(nu.getFullYear(), 0, 1); b = nu; }
+  else if (naam === "vorig-jaar"){
+    a = new Date(nu.getFullYear()-1, 0, 1); b = new Date(nu.getFullYear()-1, 11, 31);
+  }
+  else if (naam === "aangepast"){ return; }
+  van = iso(a); tot = iso(b);
 }
-function perProductAlles(){ return D.per_product || {}; }
-function naamVan(ean){
-  const p = (D.producten || []).find(p => p.ean === ean);
-  return p ? (p.naam || ean) : ean;
+
+const inBereik = d => { const x = (d || "").slice(0,10); return x && x >= van && x <= tot; };
+
+// Aantal dagen van maand `maand` (YYYY-MM) dat binnen het bereik valt, plus het
+// totaal aantal dagen van die maand. Zo kan een maandbedrag (opslag) eerlijk
+// over een willekeurig bereik verdeeld worden.
+function dagenIn(maand){
+  const j = +maand.slice(0,4), m = +maand.slice(5,7);
+  const eerste = new Date(j, m-1, 1, 12), laatste = new Date(j, m, 0, 12);
+  const totaal = laatste.getDate();
+  const a = new Date(+van.slice(0,4), +van.slice(5,7)-1, +van.slice(8), 12);
+  const b = new Date(+tot.slice(0,4), +tot.slice(5,7)-1, +tot.slice(8), 12);
+  const van_ = a > eerste ? a : eerste;
+  const tot_ = b < laatste ? b : laatste;
+  const overlap = Math.round((tot_ - van_) / 86400000) + 1;
+  return [Math.max(0, Math.min(overlap, totaal)), totaal];
 }
-function titelVan(ean){
-  const p = (D.producten || []).find(p => p.ean === ean);
-  return p && p.titel ? p.titel : ean;
+
+/* ------------------------------------------------------------ rekenen */
+function producten(){ return D.producten || []; }
+function prod(ean){ return producten().find(p => p.ean === ean) || {ean, naam: ean.slice(-4)}; }
+function naamVan(ean){ return prod(ean).naam || ean; }
+
+let _verkoopCache = null;
+function verkoopmaanden(){
+  // Alle maanden waarin er iets verkocht is, ongeacht het gekozen bereik.
+  if (_verkoopCache) return _verkoopCache;
+  const set = new Set();
+  for (const r of Object.values((D.ruw || {}).orderregels || {}))
+    if ((r.aantal || 0) - (r.geannuleerd || 0) > 0) set.add((r.dag || "").slice(0,7));
+  set.delete("");
+  _verkoopCache = set;
+  return set;
 }
-function binnenPeriode(datum){
-  return periode === "alles" || (datum || "").slice(0,7) === periode;
+
+let _opslagCache = null;
+function opslagPerMaand(){
+  // {maand: {ean: bedrag}} uit de facturen, plus een gemiddelde per artikel voor
+  // maanden die bol nog niet gefactureerd heeft.
+  if (_opslagCache) return _opslagCache;
+  const per = {};
+  for (const f of Object.values((D.ruw || {}).facturen || {})){
+    for (const [k, v] of Object.entries(f.posten || {})){
+      const i = k.lastIndexOf("|");
+      const ean = k.slice(0, i), soort = k.slice(i+1);
+      if (soort !== "STORAGE") continue;
+      per[f.maand] = per[f.maand] || {};
+      per[f.maand][ean] = (per[f.maand][ean] || 0) + Math.abs(v);
+    }
+  }
+  const gem = {};
+  const laatste = Object.keys(per).sort().slice(-3);
+  for (const p of producten()){
+    const rij = laatste.map(m => per[m][p.ean] || 0).filter(x => x);
+    gem[p.ean] = rij.length ? rij.reduce((a,b) => a+b, 0) / rij.length : 0;
+  }
+  _opslagCache = {per, gem};
+  return _opslagCache;
+}
+
+function leeg(){
+  return {omzet_incl:0, omzet_excl:0, btw:0, stuks:0, commissie:0, inkoop:0,
+          pickpack:0, opslag:0, ads:0, vertoningen:0, kliks:0,
+          retour_aangemeld:0, retour_verwerkt:0, retour_verlies:0,
+          kosten:0, winst:0, bestellingen:0};
+}
+
+function bereken(){
+  const totaal = leeg(), perEan = {}, orders = {}, alleOrders = new Set();
+  for (const p of producten()){ perEan[p.ean] = leeg(); orders[p.ean] = new Set(); }
+  const tarief = ((D.tarieven || {}).pickpack_per_stuk) || 0;
+
+  for (const r of Object.values((D.ruw || {}).orderregels || {})){
+    if (!inBereik(r.dag)) continue;
+    const k = perEan[r.ean]; if (!k) continue;
+    const netto = (r.aantal || 0) - (r.geannuleerd || 0);
+    if (netto <= 0) continue;
+    const p = prod(r.ean), btw = +(p.btw || 21);
+    const incl = (r.prijs || 0) * netto, excl = incl / (1 + btw/100);
+    k.omzet_incl += incl; k.omzet_excl += excl; k.btw += incl - excl;
+    k.stuks += netto;
+    k.commissie += r.aantal ? (r.commissie || 0) * netto / r.aantal : 0;
+    k.inkoop += (+(p.kostprijs || 0)) * netto;
+    k.pickpack += tarief * netto;
+    orders[r.ean].add(r.oid); alleOrders.add(r.oid);
+  }
+
+  for (const [sleutel, v] of Object.entries((D.ruw || {}).ads || {})){
+    const i = sleutel.indexOf("|");
+    const dag = sleutel.slice(0, i), ean = sleutel.slice(i+1);
+    if (!inBereik(dag) || !perEan[ean]) continue;
+    const rij = Array.isArray(v) ? v : [v, 0, 0];
+    perEan[ean].ads += rij[0] || 0;
+    perEan[ean].vertoningen += rij[1] || 0;
+    perEan[ean].kliks += rij[2] || 0;
+  }
+
+  // Opslag hangt aan voorraad en niet aan verkoop: het maandbedrag wordt over
+  // de dagen verdeeld die in het gekozen bereik vallen.
+  const {per, gem} = opslagPerMaand();
+  const verkocht = verkoopmaanden();
+  const dezeMaand = iso(new Date()).slice(0,7);
+  const maanden = new Set([...Object.keys(per), ...verkocht, dezeMaand]);
+  for (const maand of maanden){
+    const [dagen, totaalDagen] = dagenIn(maand);
+    if (!dagen) continue;
+    const gefactureerd = per[maand];
+    // RAAM NOOIT OPSLAG VOOR EEN MAAND WAARIN NIETS GEBEURDE.
+    //
+    // Zonder deze grens kreeg elke maand in het bereik het gemiddelde
+    // opslagbedrag toegerekend: "vorig jaar" kwam daardoor uit op 548 euro
+    // verlies terwijl er in 2025 nog geen mat verkocht was.
+    if (!gefactureerd && !verkocht.has(maand) && maand !== dezeMaand) continue;
+    for (const p of producten()){
+      const bedrag = gefactureerd ? gefactureerd[p.ean] : null;
+      const perMaand = bedrag != null ? bedrag : (gefactureerd ? 0 : gem[p.ean]);
+      perEan[p.ean].opslag += (perMaand || 0) * dagen / totaalDagen;
+    }
+  }
+
+  for (const r of (D.retours || [])){
+    const k = perEan[r.ean]; if (!k) continue;
+    if (inBereik(r.aangemeld)) k.retour_aangemeld += r.aantal || 0;
+    if (inBereik(r.verwerkt)){
+      k.retour_verwerkt += r.aantal || 0;
+      k.retour_verlies += r.verlies || 0;
+    }
+  }
+
+  for (const p of producten()){
+    const k = perEan[p.ean];
+    k.bestellingen = orders[p.ean].size;
+    k.kosten = k.commissie + k.inkoop + k.pickpack + k.opslag + k.ads + k.retour_verlies;
+    k.winst = k.omzet_excl - k.kosten;
+    k.marge = k.omzet_excl ? 100 * k.winst / k.omzet_excl : 0;
+    k.acos = k.omzet_excl ? 100 * k.ads / k.omzet_excl : 0;
+    for (const veld of Object.keys(totaal))
+      if (veld !== "bestellingen") totaal[veld] += k[veld];
+  }
+  totaal.bestellingen = alleOrders.size;
+  totaal.marge = totaal.omzet_excl ? 100 * totaal.winst / totaal.omzet_excl : 0;
+  totaal.acos = totaal.omzet_excl ? 100 * totaal.ads / totaal.omzet_excl : 0;
+  return {totaal, perEan};
 }
 
 /* ------------------------------------------------------------- tekenen */
+const TABS = [["home","Home"], ["bestellingen","Bestellingen"],
+              ["voorraad","Voorraad"], ["ads","Ads"], ["kosten","Kosten & omzet"]];
+
 function teken(){
-  const t = D.totaal;
   app.innerHTML =
     '<header><div class="binnen">' +
-      '<div class="merk"><div class="stip"></div><h1>Badmatten</h1></div>' +
-      '<div class="bijgewerkt">bijgewerkt<br>' + esc(bijgewerktTekst()) + '</div>' +
-    '</div></header>' +
-    '<div class="wrap">' +
-      '<div class="periode" id="periode"></div>' +
+      '<div class="kop"><div class="merk"><div class="stip"></div><h1>Badmatten</h1></div>' +
+      '<div class="bijgewerkt">bijgewerkt<br>' + esc(bijgewerktTekst()) + '</div></div>' +
+      '<div class="rij" id="presets"></div>' +
       '<nav class="tabs" id="tabs"></nav>' +
-      '<div id="inhoud"></div>' +
-      '<div class="voet">Alleen de vier badmatten. Cijfers komen rechtstreeks ' +
-      'van bol.<br>Meelezen kan, aanpassen niet.</div>' +
-    '</div>';
-  tekenPeriode();
-  tekenTabs();
-  tekenInhoud();
+    '</div></header>' +
+    '<div class="wrap"><div id="eigen"></div><div class="bereik" id="bereik"></div>' +
+    '<div id="inhoud"></div>' +
+    '<div class="voet">Alleen de vier badmatten. Cijfers komen rechtstreeks van bol.<br>' +
+    'Meelezen kan, aanpassen niet.</div></div>';
+  tekenPresets(); tekenTabs(); tekenInhoud();
 }
 
 function bijgewerktTekst(){
   if (!D.bijgewerkt) return "onbekend";
   const d = new Date(D.bijgewerkt);
-  const minuten = Math.round((Date.now() - d.getTime()) / 60000);
-  if (minuten < 2) return "zojuist";
-  if (minuten < 60) return minuten + " min geleden";
-  const uren = Math.round(minuten / 60);
-  if (uren < 24) return uren + " uur geleden";
+  const min = Math.round((Date.now() - d.getTime()) / 60000);
+  if (min < 2) return "zojuist";
+  if (min < 60) return min + " min geleden";
+  const uur = Math.round(min / 60);
+  if (uur < 24) return uur + " uur geleden";
   return d.toLocaleDateString("nl-BE", {day:"numeric", month:"short"});
 }
 
-function tekenPeriode(){
-  const maanden = (D.maanden || []).slice().reverse();
-  const el = document.getElementById("periode");
-  el.innerHTML = ['alles'].concat(maanden).map(m =>
-    '<button class="chip" data-p="' + esc(m) + '" aria-pressed="' +
-    (periode === m) + '">' + (m === "alles" ? "Alles" : esc(maandKort(m))) +
-    '</button>').join("");
-  el.querySelectorAll("button").forEach(b => b.onclick = () => {
-    periode = b.dataset.p; tekenPeriode(); tekenInhoud();
+function tekenPresets(){
+  document.getElementById("presets").innerHTML = PRESETS.map(([id, naam]) =>
+    '<button class="chip" data-p="' + id + '" aria-pressed="' + (preset === id) + '">' +
+    naam + '</button>').join("");
+  document.querySelectorAll("#presets button").forEach(b => b.onclick = () => {
+    zetPreset(b.dataset.p);
+    tekenPresets(); tekenInhoud();
   });
+  tekenEigen();
 }
 
-const TABS = [["overzicht","Overzicht"],["producten","Producten"],
-              ["bestellingen","Bestellingen"],["retours","Retours"],
-              ["voorraad","Voorraad"]];
+function tekenEigen(){
+  const el = document.getElementById("eigen");
+  el.innerHTML = preset !== "aangepast" ? "" :
+    '<div class="periode-eigen"><label>van <input type="date" id="dvan" value="' + van + '"></label>' +
+    '<label>tot <input type="date" id="dtot" value="' + tot + '"></label></div>';
+  if (preset === "aangepast"){
+    const dv = document.getElementById("dvan"), dt = document.getElementById("dtot");
+    const wijzig = () => {
+      van = dv.value || van; tot = dt.value || tot;
+      if (van > tot){ const h = van; van = tot; tot = h; dv.value = van; dt.value = tot; }
+      tekenBereik(); tekenInhoud();
+    };
+    dv.onchange = wijzig; dt.onchange = wijzig;
+  }
+  tekenBereik();
+}
+
+function tekenBereik(){
+  const el = document.getElementById("bereik");
+  if (el) el.textContent = van === tot ? datumLang(van)
+    : datumLang(van) + " t/m " + datumLang(tot);
+}
 
 function tekenTabs(){
-  const el = document.getElementById("tabs");
-  el.innerHTML = TABS.map(([id, naam]) =>
-    '<button data-t="' + id + '" aria-selected="' + (tab === id) + '">' +
-    naam + '</button>').join("");
-  el.querySelectorAll("button").forEach(b => b.onclick = () => {
-    tab = b.dataset.t; zoekterm = ""; tekenTabs(); tekenInhoud();
-    window.scrollTo({top:0});
+  document.getElementById("tabs").innerHTML = TABS.map(([id, naam]) =>
+    '<button data-t="' + id + '" aria-selected="' + (tab === id) + '">' + naam + '</button>').join("");
+  document.querySelectorAll("#tabs button").forEach(b => b.onclick = () => {
+    tab = b.dataset.t; zoekterm = "";
+    if (tab === "bestellingen") subtab = "op-datum";
+    tekenTabs(); tekenInhoud(); window.scrollTo({top:0});
   });
 }
 
 function tekenInhoud(){
-  const el = document.getElementById("inhoud");
-  el.innerHTML = ({overzicht: vOverzicht, producten: vProducten,
-                   bestellingen: vBestellingen, retours: vRetours,
-                   voorraad: vVoorraad})[tab]();
-  if (tab === "bestellingen"){
-    const z = document.getElementById("zoek");
-    if (z) z.oninput = () => {
-      zoekterm = z.value.toLowerCase();
-      document.getElementById("bestellijst").innerHTML = bestellijst();
-    };
-  }
+  document.getElementById("inhoud").innerHTML =
+    ({home:vHome, bestellingen:vBestellingen, voorraad:vVoorraad,
+      ads:vAds, kosten:vKosten})[tab]();
+  document.querySelectorAll(".subtabs button").forEach(b => b.onclick = () => {
+    subtab = b.dataset.s; zoekterm = ""; tekenInhoud();
+  });
+  const z = document.getElementById("zoek");
+  if (z) z.oninput = () => {
+    zoekterm = z.value.toLowerCase();
+    const doel = document.getElementById("bestellijst");
+    if (doel) doel.innerHTML = bestellijst();
+  };
 }
 
-/* ------------------------------------------------------------ overzicht */
-function vOverzicht(){
-  const {kpi, geschat} = huidig();
-  const winstKlasse = kpi.winst >= 0 ? "pos" : "neg";
-  let html =
-    '<div class="kpis">' +
-      kaartKpi("Omzet", euro(kpi.omzet_excl || 0), (kpi.stuks || 0) + " matten verkocht", "") +
-      kaartKpi("Winst", euro(kpi.winst || 0), (kpi.marge || 0) + "% marge", winstKlasse) +
-      kaartKpi("Bestellingen", (kpi.bestellingen || 0).toString(),
-               periode === "alles" ? "sinds de start" : maandNaam(periode), "") +
-      kaartKpi("Retours", (kpi.retour_stuks || 0).toString(),
-               (kpi.retour_pct || 0) + "% van de verkopen", "") +
-    '</div>';
+/* ---------------------------------------------------------------- home */
+function vHome(){
+  const {totaal:t} = bereken();
+  const tegel = (label, waarde, onder, klasse) =>
+    '<div class="tegel"><div class="label">' + label + '</div>' +
+    '<div class="waarde num ' + (klasse || "") + '">' + waarde + '</div>' +
+    '<div class="onder">' + onder + '</div></div>';
 
-  html += '<div class="kaart"><h2>Waar gaat de euro naartoe</h2>' + opbouw(kpi) + '</div>';
+  return '<div class="tegels">' +
+    tegel("Bestellingen", getal(t.bestellingen),
+          t.bestellingen ? euro(t.omzet_incl / t.bestellingen) + " gemiddeld" : "—") +
+    tegel("Verkochte stuks", getal(t.stuks),
+          t.bestellingen ? komma(t.stuks / t.bestellingen, 2) + " per bestelling" : "—") +
+    tegel("Advertenties", euro(t.ads),
+          t.omzet_excl ? komma(t.acos, 1) + "% van de omzet" : "—") +
+    tegel("Omzet excl. btw", euro(t.omzet_excl), euro(t.omzet_incl) + " incl. btw") +
+    tegel("Retouren", getal(t.retour_aangemeld),
+          t.stuks ? komma(100 * t.retour_aangemeld / t.stuks, 1) + "% van de verkopen"
+                  : "aangemeld in deze periode") +
+    tegel("Retouren verwerkt", getal(t.retour_verwerkt),
+          t.retour_verlies ? euro(t.retour_verlies) + " verlies" : "afgehandeld door bol") +
+    tegel("Winst (na alles)", euro(t.winst),
+          t.omzet_excl ? komma(t.marge, 1) + "% marge" : "geen omzet in deze periode",
+          t.winst >= 0 ? "pos" : "neg") +
+    tegel("Totale kosten", euro(t.kosten),
+          t.omzet_excl ? komma(100 * t.kosten / t.omzet_excl, 0) + "% van de omzet" : "—") +
+    '</div>' + meldingen();
+}
 
-  if (periode === "alles"){
-    html += '<div class="kaart"><h2>Per maand</h2>' + maandGrafiek() +
-      '<div class="legenda"><span><i style="background:var(--omzet)"></i>omzet</span>' +
-      '<span><i style="background:var(--winst)"></i>winst</span></div></div>';
-  } else {
-    html += '<div class="kaart"><h2>Per dag in ' + esc(maandNaam(periode)) + '</h2>' +
-      dagGrafiek(periode) +
-      '<div class="legenda"><span><i style="background:var(--omzet)"></i>omzet per dag</span></div></div>';
-  }
-
-  const nogNietAf = (D.tarieven && D.tarieven.geschatte_maanden || [])
-    .filter(m => (D.maanden || []).includes(m));
-  if (geschat || (periode === "alles" && nogNietAf.length)){
+function meldingen(){
+  let html = "";
+  const inPeriode = m => m >= van.slice(0,7) && m <= tot.slice(0,7);
+  const geschat = ((D.tarieven || {}).geschatte_maanden || []).filter(inPeriode);
+  if (geschat.length)
     html += '<div class="melding"><strong>Nog niet gefactureerd.</strong> Bol rekent ' +
-      'de kosten voor fulfilment en opslag pas na afloop van de maand af. Voor deze ' +
-      (periode === "alles"
-        ? 'periode (' + nogNietAf.map(maandNaam).join(" en ") + ') staan ze op het tarief '
-        : 'maand staan ze op het tarief ') +
-      'van de laatste drie afgerekende maanden, dus de winst kan nog een beetje ' +
-      'schuiven.</div>';
-  }
-  const onvolledig = (D.tarieven && D.tarieven.onvolledige_maanden || [])
-    .filter(m => periode === "alles" || m === periode);
-  if (onvolledig.length){
+      'fulfilment en opslag pas na afloop van de maand af. Voor ' +
+      geschat.map(m => MAANDEN[+m.slice(5,7)-1]).join(" en ") +
+      ' staan die op het tarief van de laatste afgerekende maanden, dus de winst ' +
+      'kan nog een beetje schuiven.</div>';
+  const onvolledig = ((D.tarieven || {}).onvolledige_maanden || []).filter(inPeriode);
+  if (onvolledig.length)
     html += '<div class="melding"><strong>Deels bekend.</strong> Van ' +
-      onvolledig.map(maandNaam).join(", ") + ' heeft bol méér stuks gefactureerd ' +
-      'dan er hier bestellingen van bekend zijn: bol geeft bestellingen ouder ' +
-      'dan drie maanden niet meer terug. Omzet en winst van die maand zijn dus ' +
-      'een ondergrens — wat er staat is echt verkocht, er hoort alleen meer ' +
-      'bij.</div>';
-  }
-  if ((D.fouten || []).length){
+      onvolledig.map(m => MAANDEN[+m.slice(5,7)-1]).join(", ") + ' heeft bol méér ' +
+      'stuks gefactureerd dan er bestellingen van bekend zijn — bol geeft ' +
+      'bestellingen ouder dan drie maanden niet meer terug. Die maand is dus een ' +
+      'ondergrens.</div>';
+  if ((D.fouten || []).length)
     html += '<div class="melding">Bij het laatste ophalen ging iets mis: ' +
       esc(D.fouten.join(" · ")) + '. De rest van de cijfers klopt gewoon.</div>';
-  }
   return html;
 }
 
-function kaartKpi(label, waarde, onder, klasse){
-  return '<div class="kpi"><div class="label">' + label + '</div>' +
-    '<div class="waarde num ' + klasse + '">' + waarde + '</div>' +
-    '<div class="onder">' + esc(onder) + '</div></div>';
-}
-
-function opbouw(k){
-  const omzet = k.omzet_excl || 0;
-  const posten = [
-    ["Commissie bol", k.commissie || 0],
-    ["Inkoop matten", k.inkoop || 0],
-    ["Fulfilment (pick & pack)", k.pickpack || 0],
-    ["Advertenties", k.ads || 0],
-    ["Opslag bij bol", k.opslag || 0],
-  ];
-  if (k.retour_verlies) posten.push(["Verlies op retours", k.retour_verlies]);
-  posten.sort((a,b) => b[1] - a[1]);
-  const max = Math.max(omzet, 1);
-  let html = '<div class="opbouw">' +
-    '<div class="regel kop"><div class="naam">Omzet (excl. btw)</div>' +
-    '<div class="bedrag num">' + euro(omzet) + '</div>' +
-    '<div class="spoor"><div class="vulling" style="width:100%"></div></div></div>';
-  for (const [naam, bedrag] of posten){
-    const pct = omzet ? Math.round(100 * bedrag / omzet) : 0;
-    html += '<div class="regel"><div class="naam">' + naam + '</div>' +
-      '<div class="bedrag num">−' + euro(bedrag) + '</div>' +
-      '<div class="spoor"><div class="vulling" style="width:' +
-      (100 * Math.max(bedrag,0) / max).toFixed(1) + '%"></div></div>' +
-      '<div class="toel">' + pct + '% van de omzet</div></div>';
-  }
-  const winst = k.winst || 0;
-  html += '<div class="regel slot' + (winst < 0 ? ' min' : '') + '">' +
-    '<div class="naam">Winst</div><div class="bedrag num ' +
-    (winst >= 0 ? "pos" : "neg") + '">' + euro(winst) + '</div>' +
-    '<div class="spoor"><div class="vulling" style="width:' +
-    (100 * Math.abs(winst) / max).toFixed(1) + '%"></div></div>' +
-    '<div class="toel">' + (k.marge || 0) + '% van de omzet blijft over</div></div></div>';
-  return html;
-}
-
-/* --------------------------------------------------------------- grafiek */
-function maandGrafiek(){
-  const maanden = D.maanden || [];
-  return staafGrafiek(maanden.map(m => {
-    const t = (D.per_maand[m] || {totaal:{}}).totaal;
-    return {
-      label: maandKort(m),
-      titel: maandNaam(m) + ": " + euro(t.omzet_excl || 0) + " omzet, " +
-             euro(t.winst || 0) + " winst",
-      reeksen: [{waarde: t.omzet_excl || 0, kleur: "var(--omzet)", tekst: euro0(t.omzet_excl || 0)},
-                {waarde: t.winst || 0, kleur: "var(--winst)", tekst: euro0(t.winst || 0)}]
-    };
-  }), {waarden: true, labelStap: 1});
-}
-
-function dagGrafiek(maand){
-  const dagen = (D.dagen || []).filter(d => d.dag.slice(0,7) === maand);
-  if (!dagen.length) return '<div class="leeg">Nog geen verkopen in deze maand.</div>';
-  return staafGrafiek(dagen.map(d => ({
-    label: d.dag.slice(8).replace(/^0/, ""),
-    titel: datumKort(d.dag) + ": " + euro(d.omzet) + " omzet · " + d.stuks +
-           " stuks · " + euro(d.ads) + " advertenties",
-    reeksen: [{waarde: d.omzet, kleur: "var(--omzet)", tekst: ""}]
-  })), {waarden: false, labelStap: dagen.length > 16 ? 5 : 1});
-}
-
-/**
- * Staafdiagram in gewone HTML. Eén schaal voor alle reeksen (nooit twee assen),
- * 2px tussen naast elkaar staande staven, en bij weinig staven de waarde er
- * direct onder - zodat kleur niet het enige is dat betekenis draagt.
- */
-function staafGrafiek(punten, opties){
-  opties = opties || {};
-  if (!punten.length) return '<div class="leeg">Nog geen cijfers.</div>';
-  const alles = punten.flatMap(p => p.reeksen.map(r => r.waarde));
-  const top = Math.max(1, ...alles), bodem = Math.min(0, ...alles);
-  const bereik = (top - bodem) || 1;
-  const nul = 100 * (0 - bodem) / bereik;
-  const reeksen = punten[0].reeksen.length;
-  const breed = reeksen === 1 ? (punten.length > 16 ? 92 : 70)
-                              : (100 - (reeksen - 1) * 8) / reeksen;
-
-  let html = '<div class="chart" style="gap:' + (punten.length > 16 ? 2 : 3) +
-    'px"><div class="nul" style="bottom:' + nul.toFixed(2) + '%"></div>';
-  for (const p of punten){
-    html += '<div class="kolom"' + (p.titel ? ' title="' + esc(p.titel) + '"' : '') + '>';
-    p.reeksen.forEach((r, j) => {
-      const hoog = 100 * Math.abs(r.waarde) / bereik;
-      const onder = r.waarde >= 0 ? nul : nul - hoog;
-      const links = reeksen === 1 ? (100 - breed) / 2 : j * (breed + 8);
-      html += '<div class="balk' + (r.waarde < 0 ? ' min' : '') + '" style="left:' +
-        links.toFixed(2) + '%;width:' + breed.toFixed(2) + '%;bottom:' +
-        onder.toFixed(2) + '%;height:' + hoog.toFixed(2) + '%;background:' +
-        r.kleur + '"></div>';
-    });
-    html += '</div>';
-  }
-  html += '</div>';
-
-  const kolommen = 'grid-template-columns:repeat(' + punten.length + ',1fr)';
-  const stap = opties.labelStap || 1;
-  html += '<div class="aslabels" style="' + kolommen + '">' +
-    punten.map((p, i) => '<div>' +
-      (i % stap === 0 || i === punten.length - 1 ? esc(p.label) : "") +
-      '</div>').join("") + '</div>';
-  if (opties.waarden){
-    html += '<div class="aswaarden" style="' + kolommen + '">' +
-      punten.map(p => '<div>' + p.reeksen.map((r, j) =>
-        '<div style="color:' + (j === 0 ? "var(--ink-2)" : "var(--ink-3)") + '">' +
-        esc(r.tekst) + '</div>').join("") + '</div>').join("") + '</div>';
-  }
-  return html;
-}
-
-/* -------------------------------------------------------------- producten */
-function vProducten(){
-  const {producten} = huidig();
-  const rijen = (D.producten || []).map(p => ({p, k: producten[p.ean] || {}}))
-    .sort((a,b) => (b.k.omzet_excl || 0) - (a.k.omzet_excl || 0));
-  const max = Math.max(1, ...rijen.map(r => r.k.omzet_excl || 0));
-  let html = "";
-  for (const {p, k} of rijen){
-    const winst = k.winst || 0;
-    html += '<div class="kaart"><div class="regel" style="margin-bottom:6px">' +
-      '<div class="naam" style="font-weight:600;font-size:15px">' + esc(p.naam) + '</div>' +
-      '<div class="bedrag num">' + euro(k.omzet_excl || 0) + '</div>' +
-      '<div class="spoor"><div class="vulling" style="background:var(--omzet);width:' +
-      (100 * (k.omzet_excl || 0) / max).toFixed(1) + '%"></div></div>' +
-      '<div class="toel">' + esc(p.titel || p.ean) + '</div></div>' +
-      '<div class="tabelwrap"><table><tbody>' +
-      rij("Verkocht", (k.stuks || 0) + " stuks") +
-      rij("Bestellingen", (k.bestellingen || 0).toString()) +
-      rij("Commissie bol", "−" + euro(k.commissie || 0)) +
-      rij("Inkoop", "−" + euro(k.inkoop || 0)) +
-      rij("Fulfilment", "−" + euro(k.pickpack || 0)) +
-      rij("Opslag", "−" + euro(k.opslag || 0)) +
-      rij("Advertenties", "−" + euro(k.ads || 0) +
-          (k.kliks ? ' <span class="vlag">' + k.kliks + ' kliks</span>' : "")) +
-      (k.retour_stuks ? rij("Retours", k.retour_stuks + " stuks · −" +
-          euro(k.retour_verlies || 0)) : "") +
-      '<tr><td style="font-weight:600">Winst</td><td style="font-weight:600" class="' +
-      (winst >= 0 ? "pos" : "neg") + '">' + euro(winst) + ' <small style="color:var(--ink-3)">(' +
-      (k.marge || 0) + '%)</small></td></tr>' +
-      '</tbody></table></div></div>';
-  }
-  return html || '<div class="leeg">Geen verkopen in deze periode.</div>';
-}
-function rij(naam, waarde){
-  return '<tr><td>' + naam + '</td><td class="num">' + waarde + '</td></tr>';
-}
-
-/* ----------------------------------------------------------- bestellingen */
+/* -------------------------------------------------------- bestellingen */
 function vBestellingen(){
-  return '<div class="kaart">' +
-    '<input class="zoek" id="zoek" type="search" placeholder="Zoek op bestelnummer, kleur of land" ' +
-    'autocapitalize="off" autocorrect="off">' +
-    '<div class="lijst" id="bestellijst">' + bestellijst() + '</div></div>';
+  const knop = (id, naam) => '<button data-s="' + id + '" aria-selected="' +
+    (subtab === id) + '">' + naam + '</button>';
+  let html = '<div class="subtabs">' + knop("op-datum","Op datum") +
+    knop("gegroepeerd","Gegroepeerd") + knop("retours","Retours") + '</div>';
+  if (subtab === "op-datum")
+    html += '<div class="kaart"><input class="zoek" id="zoek" type="search" ' +
+      'placeholder="Zoek op bestelnummer, kleur of land" autocapitalize="off">' +
+      '<div class="lijst" id="bestellijst">' + bestellijst() + '</div></div>';
+  else if (subtab === "gegroepeerd") html += gegroepeerd();
+  else html += retourlijst();
+  return html;
+}
+
+function bestellingenInBereik(){
+  const per = {};
+  for (const r of Object.values((D.ruw || {}).orderregels || {})){
+    if (!inBereik(r.dag)) continue;
+    const netto = (r.aantal || 0) - (r.geannuleerd || 0);
+    if (netto <= 0) continue;
+    const o = per[r.oid] = per[r.oid] ||
+      {id:r.oid, dag:r.dag, tijd:(r.tijd || "").slice(11,16), land:r.land || "",
+       regels:[], bedrag:0, stuks:0};
+    o.regels.push({ean:r.ean, aantal:netto, prijs:r.prijs || 0});
+    o.bedrag += (r.prijs || 0) * netto; o.stuks += netto;
+    if (!o.tijd && r.tijd) o.tijd = r.tijd.slice(11,16);
+    if (!o.land && r.land) o.land = r.land;
+  }
+  const retourOrders = new Set((D.retours || []).map(r => r.oid).filter(Boolean));
+  const lijst = Object.values(per);
+  for (const o of lijst) o.retour = retourOrders.has(o.id);
+  lijst.sort((a,b) => (b.dag + b.tijd).localeCompare(a.dag + a.tijd));
+  return lijst;
 }
 
 function bestellijst(){
-  let rijen = (D.bestellingen || []).filter(o => binnenPeriode(o.dag));
-  if (zoekterm){
-    rijen = rijen.filter(o =>
-      (o.id || "").toLowerCase().includes(zoekterm) ||
+  let rijen = bestellingenInBereik();
+  if (zoekterm)
+    rijen = rijen.filter(o => (o.id || "").toLowerCase().includes(zoekterm) ||
       (o.land || "").toLowerCase().includes(zoekterm) ||
       o.regels.some(r => naamVan(r.ean).toLowerCase().includes(zoekterm) ||
                          r.ean.includes(zoekterm)));
-  }
-  if (!rijen.length) return '<div class="leeg">Geen bestellingen gevonden.</div>';
-  const toon = rijen.slice(0, 400);
-  let html = toon.map(o =>
-    '<div class="item"><div class="titel">' +
+  if (!rijen.length) return '<div class="leeg">Geen bestellingen in deze periode.</div>';
+  let html = "", vorigeDag = "";
+  for (const o of rijen.slice(0, 500)){
+    if (o.dag !== vorigeDag){
+      vorigeDag = o.dag;
+      html += '<div class="dagkop">' + esc(datumLang(o.dag)) + '</div>';
+    }
+    html += '<div class="item"><div class="titel">' +
       o.regels.map(r => (r.aantal > 1 ? r.aantal + "× " : "") + esc(naamVan(r.ean))).join(", ") +
-      (o.retour ? '<span class="vlag retour">retour</span>' : "") +
-    '</div>' +
-    '<div class="rechts num">' + euro(o.bedrag) +
-      '<small>' + esc(o.land || "") + '</small></div>' +
-    '<div class="sub num">' + esc(datumKort(o.dag)) +
-      (o.tijd ? " · " + esc(o.tijd) : "") + " · " + esc(o.id) + '</div></div>').join("");
-  if (rijen.length > toon.length)
-    html += '<div class="leeg">… en nog ' + (rijen.length - toon.length) +
-      ' oudere bestellingen.</div>';
+      (o.retour ? '<span class="vlag retour">retour</span>' : "") + '</div>' +
+      '<div class="rechts num">' + euro(o.bedrag) + '<small>' + esc(o.land) + '</small></div>' +
+      '<div class="sub num">' + esc(o.tijd) + ' · ' + esc(o.id) + '</div></div>';
+  }
+  if (rijen.length > 500)
+    html += '<div class="leeg">… en nog ' + (rijen.length - 500) + ' bestellingen.</div>';
   return html;
 }
 
-/* ---------------------------------------------------------------- retours */
-function vRetours(){
-  const rijen = (D.retours || []).filter(r =>
-    binnenPeriode(r.verwerkt || r.aangemeld));
+function gegroepeerd(){
+  const {totaal, perEan} = bereken();
+  const rijen = producten().map(p => ({p, k: perEan[p.ean]}))
+    .sort((a,b) => b.k.omzet_excl - a.k.omzet_excl);
+  if (!totaal.stuks) return '<div class="leeg">Geen bestellingen in deze periode.</div>';
+  const max = Math.max(1, ...rijen.map(r => r.k.omzet_excl));
+  let html = '<div class="kaart"><h2>Per badmat in deze periode</h2>';
+  for (const {p, k} of rijen){
+    html += '<div style="padding:10px 0;border-top:1px solid var(--line)">' +
+      '<div style="display:flex;justify-content:space-between;gap:10px">' +
+      '<strong>' + esc(p.naam) + '</strong>' +
+      '<span class="num">' + euro(k.omzet_excl) + '</span></div>' +
+      '<div class="spoor"><div class="vulling" style="background:var(--blauw);width:' +
+      (100 * k.omzet_excl / max).toFixed(1) + '%"></div></div>' +
+      '<div style="font-size:12px;color:var(--ink-3);margin-top:5px" class="num">' +
+      getal(k.bestellingen) + ' bestellingen · ' + getal(k.stuks) + ' stuks' +
+      (k.stuks ? ' · ' + euro(k.omzet_incl / k.stuks) + ' per mat' : '') +
+      (k.retour_aangemeld ? ' · ' + getal(k.retour_aangemeld) + ' retour' : '') +
+      '</div></div>';
+  }
+  html += '<div style="padding:10px 0 0;border-top:2px solid var(--line-strong);' +
+    'display:flex;justify-content:space-between"><strong>Samen</strong>' +
+    '<strong class="num">' + euro(totaal.omzet_excl) + '</strong></div>';
+  return html + '</div>';
+}
+
+function retourlijst(){
+  const rijen = (D.retours || []).filter(r => inBereik(r.aangemeld) || inBereik(r.verwerkt))
+    .sort((a,b) => (b.aangemeld || "").localeCompare(a.aangemeld || ""));
   if (!rijen.length) return '<div class="leeg">Geen retours in deze periode. Mooi.</div>';
   return '<div class="kaart"><div class="lijst">' + rijen.map(r => {
     const status = !r.afgehandeld ? "onderweg"
-      : r.resultaat === "ACCEPTED" ? "goedgekeurd"
-      : (r.resultaat || "afgehandeld").toLowerCase();
+      : (r.resultaat === "ACCEPTED" || !r.resultaat) ? "verwerkt"
+      : r.resultaat.toLowerCase();
     return '<div class="item"><div class="titel">' + esc(naamVan(r.ean)) +
       (r.aantal > 1 ? " ×" + r.aantal : "") +
       '<span class="vlag">' + esc(status) + '</span></div>' +
       '<div class="rechts num">' + (r.verlies ? "−" + euro(r.verlies) : "—") + '</div>' +
-      '<div class="sub">' + esc(datumKort(r.aangemeld)) + ' · ' +
+      '<div class="sub">' + esc(datumKort(r.aangemeld)) +
+      (r.verwerkt ? ' · verwerkt ' + esc(datumKort(r.verwerkt)) : '') + ' · ' +
       esc(r.reden || "geen reden opgegeven") +
       (r.toelichting ? ' — “' + esc(r.toelichting) + '”' : "") + '</div></div>';
   }).join("") + '</div></div>';
 }
 
-/* --------------------------------------------------------------- voorraad */
+/* ------------------------------------------------------------ voorraad */
 function vVoorraad(){
   const rijen = D.voorraad || [];
   if (!rijen.length) return '<div class="leeg">Nog geen voorraadgegevens.</div>';
-  const kleuren = ["var(--omzet)", "var(--winst)", "var(--ink-3)"];
+  const kleuren = ["var(--blauw)", "var(--groen)", "var(--ink-3)"];
   let html = rijen.map(v => {
     const delen = [["bij bol", v.bol], ["fulfilment", v.fulfilment], ["thuis", v.thuis]];
     const totaal = Math.max(v.totaal, 1);
     return '<div class="kaart">' +
-      '<div class="regel"><div class="naam" style="font-weight:600;font-size:15px">' +
-      esc(naamVan(v.ean)) + '</div><div class="bedrag num">' + v.totaal + ' stuks</div>' +
-      '</div>' +
+      '<div style="display:flex;justify-content:space-between;gap:10px">' +
+      '<strong>' + esc(naamVan(v.ean)) + '</strong>' +
+      '<strong class="num">' + getal(v.totaal) + ' stuks</strong></div>' +
       '<div class="staaf">' + delen.map(([, n], i) => n ?
-        '<i style="width:' + (100 * n / totaal).toFixed(1) + '%;background:' +
-        kleuren[i] + '"></i>' : "").join("") + '</div>' +
+        '<i style="width:' + (100*n/totaal).toFixed(1) + '%;background:' + kleuren[i] + '"></i>' : ""
+      ).join("") + '</div>' +
       '<div class="legenda">' + delen.map(([naam, n], i) =>
         '<span><i style="background:' + kleuren[i] + '"></i>' + naam +
-        ' <strong class="num">' + n + '</strong></span>').join("") +
-      (v.graded ? '<span>· ' + v.graded + ' met schade</span>' : "") + '</div>' +
-      '<div class="toel" style="font-size:12px;color:var(--ink-3);margin-top:8px">' +
-        (v.per_dag ? 'Gemiddeld ' + v.per_dag.toString().replace(".", ",") +
-          ' per dag verkocht. ' +
-          (v.dagen != null ? 'Voorraad bij bol is nog ~' + v.dagen + ' dagen genoeg' +
-            (v.dagen_totaal != null && v.dagen_totaal !== v.dagen
-              ? ', met alles erbij ~' + v.dagen_totaal + ' dagen' : "") + '.'
-            : "")
-          : 'Nog geen verkopen in de laatste vier weken.') +
-      '</div></div>';
+        ' <strong class="num">' + getal(n) + '</strong></span>').join("") +
+      (v.graded ? '<span>· ' + getal(v.graded) + ' met schade</span>' : "") + '</div>' +
+      '<div style="font-size:12px;color:var(--ink-3);margin-top:8px">' +
+        (v.per_dag ? 'Gemiddeld ' + String(v.per_dag).replace(".", ",") +
+          ' per dag verkocht' +
+          (v.dagen != null ? ' · voorraad bij bol nog ~' + v.dagen + ' dagen' : '') +
+          (v.dagen_totaal != null && v.dagen_totaal !== v.dagen ?
+            ' · met alles erbij ~' + v.dagen_totaal + ' dagen' : '') + '.'
+          : 'Nog geen verkopen in de laatste vier weken.') + '</div></div>';
   }).join("");
   const gemeten = rijen.map(v => v.gemeten).filter(Boolean).sort().pop();
   if (gemeten) html += '<div class="melding">Voorraad bij bol gemeten op ' +
-    esc(datumKort(gemeten)) + '. Fulfilment en thuis worden door Olivier ' +
-    'bijgehouden.</div>';
+    esc(datumKort(gemeten)) + '. Dit is de stand van nu, niet van de gekozen periode. ' +
+    'Fulfilment en thuis worden door Olivier bijgehouden.</div>';
   return html;
+}
+
+/* ----------------------------------------------------------------- ads */
+function vAds(){
+  const {totaal, perEan} = bereken();
+  if (!totaal.ads) return '<div class="kaart"><h2>Advertenties</h2>' +
+    '<div class="leeg">Geen advertentiekosten in deze periode.</div></div>';
+  const rijen = producten().map(p => ({p, k: perEan[p.ean]}))
+    .sort((a,b) => b.k.ads - a.k.ads);
+  const max = Math.max(1, ...rijen.map(r => r.k.ads));
+  let html = '<div class="kaart"><h2>Advertentiekosten per badmat</h2>';
+  for (const {p, k} of rijen){
+    html += '<div style="padding:10px 0;border-top:1px solid var(--line)">' +
+      '<div style="display:flex;justify-content:space-between;gap:10px">' +
+      '<strong>' + esc(p.naam) + '</strong><span class="num">' + euro(k.ads) + '</span></div>' +
+      '<div class="spoor"><div class="vulling" style="width:' +
+      (100*k.ads/max).toFixed(1) + '%"></div></div>' +
+      '<div style="font-size:12px;color:var(--ink-3);margin-top:5px" class="num">' +
+      getal(k.vertoningen) + ' vertoningen · ' + getal(k.kliks) + ' kliks' +
+      (k.vertoningen ? ' · ' + komma(100*k.kliks/k.vertoningen, 2) + '% ctr' : '') +
+      (k.omzet_excl ? ' · ' + komma(k.acos, 0) + '% van de omzet' : '') +
+      (k.stuks ? ' · ' + euro(k.ads / k.stuks) + ' per verkochte mat' : '') +
+      '</div></div>';
+  }
+  html += '<div style="padding:10px 0 0;border-top:2px solid var(--line-strong);' +
+    'display:flex;justify-content:space-between"><strong>Samen</strong>' +
+    '<strong class="num">' + euro(totaal.ads) + '</strong></div></div>';
+  html += '<div class="melding">Alleen de kosten die bol aan deze vier artikelen ' +
+    'toewijst. Merkcampagnes die aan de hele winkel hangen tellen hier niet mee, ' +
+    'want die zijn niet aan één artikel toe te rekenen.</div>';
+  return html;
+}
+
+/* ---------------------------------------------------- kosten en omzet */
+function vKosten(){
+  const {totaal:t, perEan} = bereken();
+  const rijen = producten().map(p => ({p, k: perEan[p.ean]}))
+    .sort((a,b) => b.k.omzet_excl - a.k.omzet_excl);
+  const pct = v => t.omzet_excl ? komma(100*v/t.omzet_excl, 1) + "%" : "—";
+  const posten = [
+    ["Commissie bol", "commissie"], ["Inkoop matten", "inkoop"],
+    ["Fulfilment (pick & pack)", "pickpack"], ["Opslag bij bol", "opslag"],
+    ["Advertenties", "ads"], ["Verlies op retours", "retour_verlies"],
+  ];
+
+  let html = '<div class="kaart"><h2>Van omzet naar winst</h2><div class="tabelwrap"><table>' +
+    '<thead><tr><th>Post</th><th>Bedrag</th><th>Deel</th></tr></thead><tbody>' +
+    '<tr><td>Omzet incl. btw</td><td class="num">' + euro(t.omzet_incl) +
+    '</td><td class="num">—</td></tr>' +
+    '<tr class="sub"><td>waarvan btw</td><td class="num">−' + euro(t.btw) +
+    '</td><td class="num">—</td></tr>' +
+    '<tr><td><strong>Omzet excl. btw</strong></td><td class="num"><strong>' +
+    euro(t.omzet_excl) + '</strong></td><td class="num">100%</td></tr>';
+  for (const [naam, veld] of posten)
+    html += '<tr><td>' + naam + '</td><td class="num">−' + euro(t[veld]) +
+      '</td><td class="num">' + pct(t[veld]) + '</td></tr>';
+  html += '<tr class="totaal"><td>Totale kosten</td><td class="num">−' + euro(t.kosten) +
+    '</td><td class="num">' + pct(t.kosten) + '</td></tr>' +
+    '<tr class="totaal"><td>Winst na alles</td><td class="num ' +
+    (t.winst >= 0 ? "pos" : "neg") + '">' + euro(t.winst) + '</td><td class="num">' +
+    komma(t.marge, 1) + '%</td></tr></tbody></table></div></div>';
+
+  html += '<div class="kaart"><h2>Per badmat</h2><div class="tabelwrap"><table>' +
+    '<thead><tr><th>Badmat</th><th>Stuks</th><th>Omzet</th><th>Commissie</th><th>Inkoop</th>' +
+    '<th>Fulfilment</th><th>Opslag</th><th>Ads</th><th>Retour</th><th>Kosten</th>' +
+    '<th>Winst</th><th>Marge</th></tr></thead><tbody>';
+  const cel = v => '<td class="num">' + euro(v) + '</td>';
+  for (const {p, k} of rijen)
+    html += '<tr><td>' + esc(p.naam) + '</td><td class="num">' + getal(k.stuks) + '</td>' +
+      cel(k.omzet_excl) + cel(k.commissie) + cel(k.inkoop) + cel(k.pickpack) +
+      cel(k.opslag) + cel(k.ads) + cel(k.retour_verlies) + cel(k.kosten) +
+      '<td class="num ' + (k.winst >= 0 ? "pos" : "neg") + '">' + euro(k.winst) + '</td>' +
+      '<td class="num">' + komma(k.marge, 0) + '%</td></tr>';
+  html += '<tr class="totaal"><td>Samen</td><td class="num">' + getal(t.stuks) + '</td>' +
+    cel(t.omzet_excl) + cel(t.commissie) + cel(t.inkoop) + cel(t.pickpack) +
+    cel(t.opslag) + cel(t.ads) + cel(t.retour_verlies) + cel(t.kosten) +
+    '<td class="num ' + (t.winst >= 0 ? "pos" : "neg") + '">' + euro(t.winst) + '</td>' +
+    '<td class="num">' + komma(t.marge, 0) + '%</td></tr></tbody></table></div></div>';
+
+  html += '<div class="melding"><strong>Hoe dit gerekend is.</strong> Omzet, stuks en ' +
+    'commissie komen uit de bestellingen zelf. Fulfilment is het tarief per stuk uit de ' +
+    'bolfacturen. Opslag komt van de maandfactuur en wordt over de dagen van de gekozen ' +
+    'periode verdeeld. Advertenties komen uit het dagrapport van bol, per artikel. Inkoop ' +
+    'is de kostprijs maal het aantal verkochte stuks. Een verwerkte retour draait omzet en ' +
+    'commissie terug; de mat komt terug op voorraad tenzij bol hem als verloren ' +
+    'afmeldt.</div>';
+  return html + meldingen();
 }
 
 start();
