@@ -1,0 +1,121 @@
+name: Cijfers verversen
+
+# Elk uur de nieuwe bestellingen, retouren, advertentiekosten en voorraad bij
+# bol ophalen en de webapp opnieuw publiceren.
+#
+# WAAROM ER NIETS WORDT GECOMMIT
+#
+# data.json is versleuteld, en versleutelde bytes zijn elke keer volledig
+# anders - ook als er inhoudelijk niets veranderd is (dat hoort zo: een vaste
+# uitkomst zou de versleuteling verzwakken). Git zou daardoor elk uur een
+# compleet nieuw bestand van ruim honderd kilobyte bewaren, en die historie kun
+# je nooit meer weggooien. Na een jaar is dat een repo van een gigabyte voor
+# vier badmatten.
+#
+# Daarom publiceert deze workflow rechtstreeks naar GitHub Pages, zonder commit.
+# De vorige stand wordt aan het begin van de site zelf teruggehaald - dat is
+# meteen de historie, want bol bewaart bestellingen maar drie maanden.
+#
+# GitHub voert geplande workflows onder drukte later uit dan gevraagd; een
+# kwartier vertraging is normaal en geen storing.
+
+on:
+  schedule:
+    - cron: "17 * * * *"      # elk uur op :17 (UTC)
+  workflow_dispatch:           # ook handmatig te starten via de knop Run workflow
+    inputs:
+      opnieuw_beginnen:
+        description: "Historie weggooien en opnieuw opbouwen (alleen na het wijzigen van de code)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Twee runs tegelijk zouden elkaars gegevens overschrijven.
+concurrency:
+  group: badmatten-pages
+  cancel-in-progress: false
+
+jobs:
+  ververs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment:
+      name: github-pages
+      url: ${{ steps.publiceren.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Versleuteling installeren
+        run: pip install --quiet cryptography
+
+      - name: Vorige stand ophalen
+        env:
+          # Standaard het adres van deze repo op github.io. Klopt dat niet (bv.
+          # bij een eigen domein), zet dan de repository-variabele PAGES_URL.
+          PAGES_URL: ${{ vars.PAGES_URL }}
+        run: |
+          if [ "${{ inputs.opnieuw_beginnen }}" = "true" ]; then
+            echo "Opnieuw beginnen aangevinkt - de vorige stand wordt niet opgehaald."
+            rm -f data.json
+            exit 0
+          fi
+          # Uit GITHUB_REPOSITORY afgeleid en niet uit github.event: dat object
+          # ziet er per soort gebeurtenis anders uit, en een lege repo-naam zou
+          # hier stilletjes een verkeerd adres opleveren.
+          basis="${PAGES_URL:-https://${{ github.repository_owner }}.github.io/${GITHUB_REPOSITORY#*/}}"
+          basis="${basis%/}"
+          echo "Ophalen van $basis/data.json"
+          code=$(curl -sSL -o vorige.json -w '%{http_code}' "$basis/data.json?t=$(date +%s)" || echo 000)
+          if [ "$code" = "200" ] && python3 -c "import json,sys; d=json.load(open('vorige.json')); sys.exit(0 if d.get('data') else 1)"; then
+            mv vorige.json data.json
+            echo "Vorige stand opgehaald ($(wc -c < data.json) bytes)."
+          elif [ "$code" = "404" ]; then
+            echo "Nog niets gepubliceerd. We gaan verder met wat er in de repo staat."
+            ls -l data.json 2>/dev/null || echo "(ook geen data.json in de repo - dit wordt de eerste opbouw)"
+          else
+            # Nooit doorgaan met een lege of halve stand: dan zou de opgebouwde
+            # historie in één ronde verdwijnen.
+            echo "::error::Kon de vorige stand niet ophalen (HTTP $code). Gestopt om de historie niet kwijt te raken."
+            exit 1
+          fi
+
+      - name: Cijfers ophalen bij bol
+        env:
+          BOL_CLIENT_ID: ${{ secrets.BOL_CLIENT_ID }}
+          BOL_CLIENT_SECRET: ${{ secrets.BOL_CLIENT_SECRET }}
+          # Advertenties hebben eigen ADVERTEERDER-sleutels. Laat je ze leeg,
+          # dan probeert het script de gewone sleutels; lukt dat niet, dan
+          # blijven alleen de advertentiekosten leeg en draait de rest door.
+          BOL_ADS_CLIENT_ID: ${{ secrets.BOL_ADS_CLIENT_ID }}
+          BOL_ADS_CLIENT_SECRET: ${{ secrets.BOL_ADS_CLIENT_SECRET }}
+          # De code waarmee data.json versleuteld wordt: dezelfde die achter
+          # het #-teken staat in de link die je aan je partner geeft.
+          DATA_SLEUTEL: ${{ secrets.DATA_SLEUTEL }}
+          HERSTART: ${{ inputs.opnieuw_beginnen && '1' || '' }}
+          # Kostprijzen, btw en de voorraad thuis / bij je fulfilmentpartner.
+          INSTELLINGEN: ${{ secrets.INSTELLINGEN }}
+        run: python ververs/ververs.py
+
+      - name: Site klaarzetten
+        run: |
+          mkdir -p _site
+          cp index.html _site/
+          cp data.json  _site/
+          # Zoekmachines hebben hier niets te zoeken.
+          printf 'User-agent: *\nDisallow: /\n' > _site/robots.txt
+          ls -l _site
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: publiceren
+        uses: actions/deploy-pages@v4
