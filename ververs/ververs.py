@@ -689,6 +689,17 @@ def main():
         os.environ.get("BOL_ADS_CLIENT_SECRET") or os.environ["BOL_CLIENT_SECRET"],
         log=log)
 
+    # Eén keer de volle twee jaar facturen, daarna alleen de laatste maanden.
+    # De markering staat in het bestand zelf, zodat een correctie in de code
+    # (zoals het ontdubbelen van factuurregels) de oude maanden ook echt
+    # opnieuw ophaalt in plaats van de foute versie te laten staan.
+    FACTUURVERSIE = 2
+    stand = ruw.setdefault("stand", {})
+    volledig = stand.get("facturen_versie") == FACTUURVERSIE
+    factuurmaanden = FACTUUR_MAANDEN if volledig else 24
+    if not volledig:
+        log("Facturen: eenmalig de volle historie ophalen (twee jaar terug).")
+
     vandaag = date.today()
     if eerste_keer:
         vanaf = vandaag - timedelta(days=MAX_HISTORIE_DAGEN)
@@ -722,8 +733,7 @@ def main():
         ("landen", lambda: haal_orderdetails(client, ruw, eans)),
         ("retouren", lambda: haal_retours(client, ruw, eans, eerste_keer)),
         ("voorraad", lambda: haal_voorraad(client, ruw, eans)),
-        ("facturen", lambda: haal_facturen(client, ruw, eans,
-                                           24 if eerste_keer else FACTUUR_MAANDEN)),
+        ("facturen", lambda: haal_facturen(client, ruw, eans, factuurmaanden)),
         ("advertenties", lambda: haal_ads(ads_client, ruw, eans,
                                           int(os.environ.get("ADS_EERSTE", "180"))
                                           if eerste_keer else ADS_VENSTER)),
@@ -752,6 +762,10 @@ def main():
             ruw["ads"].pop(k, None)
         for k in [x for x in ruw.get("adsalg", {}) if x < eerste]:
             ruw["adsalg"].pop(k, None)
+
+    # De markering pas zetten als de factuurstap ook echt gelukt is.
+    if not volledig and not any(f.startswith("facturen:") for f in fouten):
+        ruw.setdefault("stand", {})["facturen_versie"] = FACTUURVERSIE
 
     berekend = rekenen.bereken(ruw, instellingen, vandaag)
     payload = dict(berekend)

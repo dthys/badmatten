@@ -48,7 +48,11 @@ class Client:
         self._token = None
         self._verloopt = 0.0
         self._laatste = 0.0
-        self.per_seconde = 4.0
+        # Drie per seconde, niet vier. Een inhaalslag van negentig dagen
+        # bestellingen is negentig aanroepen achter elkaar op hetzelfde
+        # endpoint, en daar trok bol de rem op: de hele stap viel om met een
+        # 429 en het gat in augustus bleef staan.
+        self.per_seconde = 3.0
         self.factuurpauze = 1.5
         self.adspauze = 0.5
         self.log = log or (lambda m: None)
@@ -96,7 +100,7 @@ class Client:
         self._laatste = time.time()
 
     def request(self, pad, params=None, method="GET", accept=ACCEPT_V10,
-                body=None, pogingen=4):
+                body=None, pogingen=6):
         schoon = {k: v for k, v in (params or {}).items() if v not in (None, "")}
         url = BASE_URL + pad
         if schoon:
@@ -117,7 +121,9 @@ class Client:
             headers["Content-Type"] = accept
 
         laatste_fout = None
-        for poging in range(pogingen):
+        poging = 0
+        while poging < pogingen:
+            poging += 1
             self._rem()
             headers["Authorization"] = f"Bearer {self._token_nu()}"
             req = urllib.request.Request(url, data=data, method=method,
@@ -140,10 +146,20 @@ class Client:
                     laatste_fout = BolFout(401, "Niet geautoriseerd.", tekst)
                     continue
                 if e.code == 429 or e.code >= 500:
-                    wacht = min(60, 2 ** poging * 5)
+                    # Bol zegt zélf hoe lang je moet wachten; dat negeren en
+                    # zelf iets verzinnen is hoe je aan de tweede 429 komt.
+                    try:
+                        wacht = int(e.headers.get("Retry-After") or 0)
+                    except (TypeError, ValueError):
+                        wacht = 0
+                    wacht = max(wacht, min(60, 2 ** poging * 5))
                     self.log(f"bol gaf {e.code}; {wacht}s wachten en opnieuw")
                     time.sleep(wacht)
                     laatste_fout = BolFout(e.code, "Tijdelijke fout bij bol.", tekst)
+                    # Een snelheidslimiet is geen mislukking, alleen ongeduld:
+                    # die mag vaker opnieuw dan een echte fout.
+                    if e.code == 429:
+                        pogingen = max(pogingen, poging + 3)
                     continue
                 uitleg = tekst.strip().replace("\n", " ")[:300]
                 raise BolFout(e.code, f"Aanvraag geweigerd door bol: {uitleg}", tekst)
