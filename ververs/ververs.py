@@ -196,21 +196,45 @@ def haal_orders(client, ruw, eans, vanaf):
 
 def haal_orderdetails(client, ruw, eans):
     """
-    Het land van de klant staat alleen in de DETAILS van een bestelling, niet in
-    de lijst. We halen dat na voor bestellingen waar het nog ontbreekt, met een
-    plafond per ronde zodat een inhaalslag nooit de hele run opsnoept.
+    Per bestelling het VOLLEDIGE detail ophalen: prijs, commissie en land.
+
+    DIT IS GEEN LUXE. De bestellingenlijst van bol geeft wel het aantal en de
+    EAN, maar GEEN unitPrice en GEEN commission - die staan alleen in het
+    detail van een bestelling. Zonder deze stap komt elke nieuwe bestelling
+    binnen op nul euro: het dashboard telde tien verkopen in augustus en zette
+    de omzet ervan op honderd euro in plaats van tweehonderdvijftig. Een
+    ontbrekend bedrag is erger dan een ontbrekende bestelling, want het valt
+    niet op - de bestelling staat er gewoon, alleen gratis.
+
+    Een plafond per ronde zorgt dat een inhaalslag nooit de hele run opsnoept;
+    wat overblijft komt de volgende ronde.
     """
     orders = ruw.setdefault("orders", {})
     regels = ruw.get("orderregels", {})
-    ontbreekt = [oid for oid, o in orders.items() if not o.get("land")]
-    # Nieuwste eerst: die staan bovenaan in de lijst en zijn het interessantst.
-    ontbreekt.sort(key=lambda oid: (orders[oid].get("dag") or ""), reverse=True)
-    ontbreekt = ontbreekt[:MAX_DETAILS]
-    if not ontbreekt:
+
+    per_order = {}
+    for oii, r in regels.items():
+        per_order.setdefault(r.get("oid"), []).append((oii, r))
+
+    nodig = []
+    for oid, rijen in per_order.items():
+        if not oid:
+            continue
+        geen_prijs = any(not r.get("prijs") and
+                         (r.get("aantal", 0) - r.get("geannuleerd", 0)) > 0
+                         for _oii, r in rijen)
+        if geen_prijs or not (orders.get(oid) or {}).get("land"):
+            nodig.append(oid)
+    # Nieuwste eerst: die zijn het interessantst en het meest kansrijk (bol
+    # geeft een oude bestelling op een gegeven moment niet meer terug).
+    nodig.sort(key=lambda oid: (orders.get(oid, {}).get("dag") or ""), reverse=True)
+    nodig = nodig[:MAX_DETAILS]
+    if not nodig:
         return 0
-    log(f"Landgegevens ophalen voor {len(ontbreekt)} bestellingen")
+
+    log(f"Details ophalen voor {len(nodig)} bestellingen (prijs, commissie, land)")
     gehaald = 0
-    for oid in ontbreekt:
+    for oid in nodig:
         try:
             detail = client.order(oid)
         except bolapi.BolFout as e:
@@ -221,12 +245,26 @@ def haal_orderdetails(client, ruw, eans):
             continue
         land = _s(detail.get("shipmentDetails") or {}, "countryCode")
         if land:
-            orders[oid]["land"] = land
-            for r in regels.values():
-                if r.get("oid") == oid:
-                    r["land"] = land
-            gehaald += 1
-    log(f"  {gehaald} landen ingevuld")
+            orders.setdefault(oid, {})["land"] = land
+        for item in detail.get("orderItems") or []:
+            oii = _s(item, "orderItemId")
+            r = regels.get(oii)
+            if not r:
+                continue
+            r["aantal"] = int(_f(item.get("quantity"))) or r.get("aantal", 0)
+            r["verzonden"] = int(_f(item.get("quantityShipped")))
+            r["geannuleerd"] = int(_f(item.get("quantityCancelled")))
+            r["prijs"] = _f(item.get("unitPrice")) or r.get("prijs", 0)
+            r["commissie"] = _f(item.get("commission")) or r.get("commissie", 0)
+            if land:
+                r["land"] = land
+        gehaald += 1
+    ontbreekt_nog = sum(1 for _oii, r in
+                        [(a, b) for rijen in per_order.values() for a, b in rijen]
+                        if not r.get("prijs")
+                        and (r.get("aantal", 0) - r.get("geannuleerd", 0)) > 0)
+    log(f"  {gehaald} bestellingen bijgewerkt"
+        + (f", {ontbreekt_nog} regels nog zonder prijs" if ontbreekt_nog else ""))
     return gehaald
 
 
@@ -637,8 +675,23 @@ def main():
         log=log)
 
     vandaag = date.today()
-    vanaf = vandaag - timedelta(days=MAX_HISTORIE_DAGEN if eerste_keer
-                                else ORDER_VENSTER)
+    if eerste_keer:
+        vanaf = vandaag - timedelta(days=MAX_HISTORIE_DAGEN)
+    else:
+        # Het venster rekt mee met het gat. Stond de vorige ronde drie weken
+        # geleden (of komt de historie uit een database die al even stil lag),
+        # dan zou een vast venster van tien dagen de tussenliggende
+        # bestellingen voorgoed overslaan - bol geeft ze na drie maanden niet
+        # meer terug.
+        vanaf = vandaag - timedelta(days=ORDER_VENSTER)
+        laatste = max((r.get("dag") or "")
+                      for r in ruw.get("orderregels", {}).values())
+        if laatste:
+            try:
+                vanaf = min(vanaf, date.fromisoformat(laatste) - timedelta(days=2))
+            except ValueError:
+                pass
+        vanaf = max(vanaf, vandaag - timedelta(days=MAX_HISTORIE_DAGEN))
     fouten = []
 
     stappen = [
