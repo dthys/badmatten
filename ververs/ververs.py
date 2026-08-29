@@ -285,20 +285,51 @@ TYPES = ("TURNOVER", "COMMISSION", "PICK_PACK", "STORAGE", "SHIPMENT_LABEL",
          "CORRECTION_TURNOVER")
 
 
+def migreer_facturen(ruw):
+    """
+    De oude, platte factuuropslag omzetten naar opslag PER FACTUUR.
+
+    Waarom dat verschil er toe doet: bol factureert niet per maand maar per
+    PERIODE, en er zitten er meerdere in een maand. De oude opzet bewaarde
+    alleen `maand|ean|soort` en veegde bij het ophalen eerst de hele maand
+    leeg. Haalde een ronde dan één factuur van die maand op, dan verdween wat
+    de andere facturen van diezelfde maand hadden bijgedragen - en dat is
+    precies wat er gebeurde: van vier gefactureerde maanden bleven er twee
+    over, en de winst van mei en juni ging op een schatting draaien terwijl de
+    echte bedragen bekend waren.
+
+    Nu bewaart elke factuur zijn eigen bijdrage. Opnieuw ophalen vervangt
+    alleen die ene factuur.
+    """
+    facturen = ruw.setdefault("facturen", {})
+    plat = ruw.pop("factuur", None)
+    plat_aantal = ruw.pop("factuur_aantal", None)
+    if not plat and not plat_aantal:
+        return facturen
+    for sleutel, bedrag in (plat or {}).items():
+        maand, ean, soort = sleutel.split("|", 2)
+        f = facturen.setdefault("overgezet:" + maand,
+                                {"maand": maand, "posten": {}, "aantal": {}})
+        f["posten"][f"{ean}|{soort}"] = bedrag
+    for sleutel, aantal in (plat_aantal or {}).items():
+        maand, ean = sleutel.split("|", 1)
+        f = facturen.setdefault("overgezet:" + maand,
+                                {"maand": maand, "posten": {}, "aantal": {}})
+        f["aantal"][ean] = aantal
+    return facturen
+
+
 def haal_facturen(client, ruw, eans, maanden):
     """
     De factuurspecificatie is de enige plek waar staat wat bol ECHT rekende:
     commissie, pick&pack en opslag per artikel. Gaat twee jaar terug.
+
+    Per factuur opgeslagen, niet per maand - zie migreer_facturen().
     """
-    factuur = ruw.setdefault("factuur", {})
-    # Het AANTAL stuks dat bol factureerde. Dat is de enige betrouwbare noemer
-    # voor "wat kost pick&pack per stuk": onze eigen bestelhistorie kan een
-    # maand maar half kennen (bol geeft er drie terug), en dan zou een volle
-    # maandfactuur gedeeld worden door een halve maand verkopen - een tarief
-    # dat er zomaar een euro naast zit.
-    aantallen = ruw.setdefault("factuur_aantal", {})
+    facturen = migreer_facturen(ruw)
     vandaag = date.today()
     regels = 0
+    echte_maanden = set()
     for terug in range(maanden):
         van, tot = _maandvenster(vandaag, terug)
         try:
@@ -319,12 +350,10 @@ def haal_facturen(client, ruw, eans, maanden):
                 _epoch_maand(_ci(inv, "issueDate", "invoiceDate", "date"))
             if not maand:
                 continue
-            # De maand schoonvegen voordat we hem opnieuw inlezen, zodat een
-            # gecorrigeerde factuur geen dubbeltelling oplevert.
-            for sleutel in [k for k in factuur if k.startswith(maand + "|")]:
-                factuur.pop(sleutel, None)
-            for sleutel in [k for k in aantallen if k.startswith(maand + "|")]:
-                aantallen.pop(sleutel, None)
+            # Alleen DEZE factuur schoonvegen voordat we hem opnieuw inlezen,
+            # zodat een gecorrigeerde factuur geen dubbeltelling oplevert maar
+            # de andere facturen van dezelfde periode blijven staan.
+            deze = {"maand": maand, "posten": {}, "aantal": {}}
             for pagina in range(1, 21):
                 try:
                     spec = client.factuurspecificatie(inv_id, pagina)
@@ -337,17 +366,26 @@ def haal_facturen(client, ruw, eans, maanden):
                 for r in rijen:
                     if r["ean"] not in eans or r["soort"] not in TYPES:
                         continue
-                    sleutel = f"{maand}|{r['ean']}|{r['soort']}"
-                    factuur[sleutel] = round(factuur.get(sleutel, 0.0) + r["bedrag"], 4)
+                    sleutel = f"{r['ean']}|{r['soort']}"
+                    deze["posten"][sleutel] = round(
+                        deze["posten"].get(sleutel, 0.0) + r["bedrag"], 4)
                     if r["soort"] in ("TURNOVER", "CORRECTION_TURNOVER"):
-                        a = f"{maand}|{r['ean']}"
                         teken = 1 if r["soort"] == "TURNOVER" else -1
-                        aantallen[a] = round(aantallen.get(a, 0.0) + teken * r["aantal"], 3)
+                        deze["aantal"][r["ean"]] = round(
+                            deze["aantal"].get(r["ean"], 0.0) + teken * r["aantal"], 3)
                     regels += 1
                 if len(rijen) < 100:
                     break
+            if deze["posten"]:
+                facturen[str(inv_id)] = deze
+                echte_maanden.add(maand)
         log(f"  facturen {van:%Y-%m} verwerkt ({regels} regels tot nu toe)")
-    log(f"Facturen klaar ({len(factuur)} posten)")
+
+    # Waar we nu ECHTE facturen van hebben, mag de overgezette samenvatting uit
+    # de oude database weg - anders staat hetzelfde bedrag er twee keer in.
+    for maand in echte_maanden:
+        facturen.pop("overgezet:" + maand, None)
+    log(f"Facturen klaar ({len(facturen)} facturen bewaard)")
     return regels
 
 

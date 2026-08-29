@@ -106,6 +106,14 @@ class Client:
         headers = {"Accept": accept}
         if body is not None:
             data = json.dumps(body).encode("utf-8")
+        # BOL EIST EEN CONTENT-TYPE OOK OP EEN POST ZONDER BODY.
+        #
+        # Dit stond hier eerst alleen bij een body erbij, en dat kostte precies
+        # de advertentiekosten: het aanvragen van een bulkrapport is een POST
+        # zonder body, en bol antwoordde met 400 zonder verdere uitleg. De rest
+        # van het dashboard liep gewoon door, dus het zag eruit als 'die week
+        # niet geadverteerd' in plaats van als een fout.
+        if body is not None or method in ("POST", "PUT", "PATCH"):
             headers["Content-Type"] = accept
 
         laatste_fout = None
@@ -137,7 +145,8 @@ class Client:
                     time.sleep(wacht)
                     laatste_fout = BolFout(e.code, "Tijdelijke fout bij bol.", tekst)
                     continue
-                raise BolFout(e.code, "Aanvraag geweigerd door bol.", tekst)
+                uitleg = tekst.strip().replace("\n", " ")[:300]
+                raise BolFout(e.code, f"Aanvraag geweigerd door bol: {uitleg}", tekst)
             except (urllib.error.URLError, TimeoutError, OSError) as e:
                 laatste_fout = BolFout(0, f"Netwerkfout: {getattr(e, 'reason', e)}")
                 time.sleep(3)

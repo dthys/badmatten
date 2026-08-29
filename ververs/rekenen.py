@@ -37,8 +37,16 @@ from datetime import date, datetime, timedelta
 
 # Uitkomsten die betekenen dat het artikel NIET terug op voorraad komt.
 VOORRAAD_KWIJT = ("RETURN_ITEM_LOST", "RETURN_ITEM_DESTROYED")
-# Alleen een goedgekeurde retour is echt terugbetaald aan de klant.
-TERUGBETAALD = ("ACCEPTED",)
+# WANNEER IS EEN RETOUR ECHT GELD KWIJT?
+#
+# Bol vult `processingResult` lang niet altijd in: op het echte account kwamen
+# alle vijf de retouren binnen als afgehandeld met een LEEG resultaat. De regel
+# "alleen ACCEPTED telt" zette het dashboard daardoor op nul retouren terwijl er
+# vijf matten terug waren gekomen - het enige getal dat een partner meteen
+# opvalt. Daarom nu omgekeerd: een AFGEHANDELDE retour is terugbetaald, tenzij
+# bol expliciet zegt van niet.
+NIET_TERUGBETAALD = ("CUSTOMER_KEEPS_PRODUCT_PAID",
+                     "RETURN_DOES_NOT_MEET_CONDITIONS", "REJECTED")
 
 KPI_VELDEN = ("omzet_excl", "omzet_incl", "stuks", "commissie", "pickpack",
               "opslag", "ads", "inkoop", "retour_stuks", "retour_verlies",
@@ -148,16 +156,33 @@ def bereken(ruw, instellingen, vandaag=None):
     #
     # Bedragen op de factuur staan negatief (het is een kostenpost); hier gaan
     # ze positief verder, zodat er verderop gewoon mee afgetrokken wordt.
-    factuur = ruw.get("factuur", {}) or {}
-    fact_aantal = ruw.get("factuur_aantal", {}) or {}
     gefactureerd = set()
     fact_bedrag = defaultdict(float)     # (maand, ean, soort) -> positief bedrag
-    for sleutel, bedrag in factuur.items():
-        maand, ean, soort = sleutel.split("|", 2)
+    fact_aantal = defaultdict(float)     # (maand, ean) -> gefactureerde stuks
+
+    def _post(maand, ean, soort, bedrag):
         if soort in ("PICK_PACK", "COMMISSION", "STORAGE", "SHIPMENT_LABEL"):
             fact_bedrag[(maand, ean, soort)] += abs(float(bedrag))
         if soort in ("PICK_PACK", "COMMISSION", "TURNOVER"):
             gefactureerd.add(maand)
+
+    # Opslag per factuur (bol factureert per periode, meerdere per maand).
+    for f in (ruw.get("facturen") or {}).values():
+        maand = f.get("maand") or ""
+        for sleutel, bedrag in (f.get("posten") or {}).items():
+            ean, soort = sleutel.split("|", 1)
+            _post(maand, ean, soort, bedrag)
+        for ean, aantal in (f.get("aantal") or {}).items():
+            fact_aantal[(maand, ean)] += float(aantal or 0)
+
+    # Terugval op de oude, platte vorm, zodat een bestand van vóór deze wijziging
+    # gewoon blijft werken.
+    for sleutel, bedrag in (ruw.get("factuur") or {}).items():
+        maand, ean, soort = sleutel.split("|", 2)
+        _post(maand, ean, soort, bedrag)
+    for sleutel, aantal in (ruw.get("factuur_aantal") or {}).items():
+        maand, ean = sleutel.split("|", 1)
+        fact_aantal[(maand, ean)] += float(aantal or 0)
 
     # Tarief per stuk uit de laatste drie gefactureerde maanden. Een maand
     # zonder enige fulfilmentkosten telt niet mee: die zegt niets over wat FBB
@@ -171,7 +196,7 @@ def bereken(ruw, instellingen, vandaag=None):
         # telling: van een maand die wij maar half kennen (bol geeft drie
         # maanden bestellingen terug) zou het tarief anders veel te hoog
         # uitvallen, en dat tarief bepaalt de kosten van de lopende maand.
-        stuks = sum(fact_aantal.get(f"{m}|{e}", 0) for m in maanden for e in eans)
+        stuks = sum(fact_aantal.get((m, e), 0) for m in maanden for e in eans)
         if not stuks:
             stuks = sum(stuks_per_maand_ean.get((m, e), 0) for m in maanden for e in eans)
         return (kosten / stuks) if stuks else 0.0
@@ -219,7 +244,8 @@ def bereken(ruw, instellingen, vandaag=None):
             continue
         aantal = int(r.get("terug") or 0) or int(r.get("verwacht") or 0)
         verwerkt = r.get("verwerkt") or ""
-        goedgekeurd = (r.get("resultaat") or "") in TERUGBETAALD
+        goedgekeurd = (bool(r.get("afgehandeld"))
+                       and (r.get("resultaat") or "") not in NIET_TERUGBETAALD)
         ean = r["ean"]
         # De verkoopprijs van dit artikel: bij voorkeur de bestelling waar de
         # retour bij hoort, anders de gemiddelde prijs van dat artikel. Bol
@@ -277,7 +303,7 @@ def bereken(ruw, instellingen, vandaag=None):
                 # naast een halve maand omzet, dan staat die maand op verlies
                 # terwijl er niets aan de hand is. Daarom schalen we de kosten
                 # mee met het deel van de maand dat we echt kennen.
-                gefactureerde_stuks = fact_aantal.get(f"{maand}|{ean}", 0)
+                gefactureerde_stuks = fact_aantal.get((maand, ean), 0)
                 deel = 1.0
                 if gefactureerde_stuks and stuks < gefactureerde_stuks * 0.98:
                     deel = stuks / gefactureerde_stuks
