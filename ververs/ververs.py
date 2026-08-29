@@ -392,7 +392,12 @@ def haal_facturen(client, ruw, eans, maanden):
             # Alleen DEZE factuur schoonvegen voordat we hem opnieuw inlezen,
             # zodat een gecorrigeerde factuur geen dubbeltelling oplevert maar
             # de andere facturen van dezelfde periode blijven staan.
-            deze = {"maand": maand, "posten": {}, "aantal": {}}
+            # `winkel` houdt drie WINKELBREDE totalen bij: wat bol in deze
+            # factuur rekende aan verzenden en pick&pack, en hoeveel stuks hij
+            # factureerde. Meer niet - geen artikelen, geen namen, geen omzet
+            # van de rest van het assortiment. Zie hieronder waarom dat moet.
+            deze = {"maand": maand, "posten": {}, "aantal": {},
+                    "winkel": {"verzend": 0.0, "pickpack": 0.0, "stuks": 0.0}}
             gezien = set()
             for pagina in range(1, 21):
                 try:
@@ -416,6 +421,23 @@ def haal_facturen(client, ruw, eans, maanden):
                     break
                 gezien.update(r["id"] for r in vers)
                 for r in vers:
+                    # VERZENDKOSTEN DRAGEN GEEN EAN.
+                    #
+                    # Bol rekent verzenden per ZENDING, niet per artikel: op dit
+                    # account stonden 2.617 verzendregels voor 11.008 euro, geen
+                    # enkele met een EAN. De filter hieronder gooide die dus
+                    # allemaal weg, en het dashboard liet de winst van de rode
+                    # mat op 167 euro staan terwijl het er 50 was. Daarom worden
+                    # de winkelbrede totalen apart geteld, vóór de filter, en
+                    # daaruit komt een tarief per verkocht stuk - precies zoals
+                    # de eigen app van de verkoper het doet.
+                    if r["soort"] == "SHIPMENT_LABEL":
+                        deze["winkel"]["verzend"] += abs(r["bedrag"])
+                    elif r["soort"] == "PICK_PACK":
+                        deze["winkel"]["pickpack"] += abs(r["bedrag"])
+                    elif r["soort"] == "TURNOVER":
+                        deze["winkel"]["stuks"] += r["aantal"]
+
                     if r["ean"] not in eans or r["soort"] not in TYPES:
                         continue
                     sleutel = f"{r['ean']}|{r['soort']}"
@@ -428,7 +450,7 @@ def haal_facturen(client, ruw, eans, maanden):
                     regels += 1
                 if len(rijen) < 100:
                     break
-            if deze["posten"]:
+            if deze["posten"] or deze["winkel"]["stuks"]:
                 facturen[str(inv_id)] = deze
                 echte_maanden.add(maand)
         log(f"  facturen {van:%Y-%m} verwerkt ({regels} regels tot nu toe)")

@@ -187,6 +187,28 @@ def bereken(ruw, instellingen, vandaag=None):
     # Tarief per stuk uit de laatste drie gefactureerde maanden. Een maand
     # zonder enige fulfilmentkosten telt niet mee: die zegt niets over wat FBB
     # nu kost en trekt het gemiddelde alleen omlaag.
+    # FULFILMENTTARIEF PER STUK, UIT DE HELE WINKEL.
+    #
+    # Verzenden staat op de factuur per zending zonder EAN (zie ververs.py), dus
+    # per artikel is het er niet uit te halen. Het tarief per verkocht stuk wel:
+    # wat bol in een maand aan verzenden en pick&pack rekende, gedeeld door het
+    # aantal stuks dat hij die maand factureerde. Bewust maar drie maanden: bol
+    # wijzigt tarieven en de tariefsprong hoort mee te bewegen.
+    winkelmaanden = sorted(
+        (f.get("maand") or "", f.get("winkel") or {})
+        for f in (ruw.get("facturen") or {}).values()
+        if (f.get("winkel") or {}).get("stuks"))
+    laatste_drie = {}
+    for maand, w in winkelmaanden:
+        vak = laatste_drie.setdefault(maand, {"verzend": 0.0, "pickpack": 0.0, "stuks": 0.0})
+        for veld in vak:
+            vak[veld] += float(w.get(veld) or 0)
+    recent = [laatste_drie[m] for m in sorted(laatste_drie)[-3:]]
+    winkel_stuks = sum(v["stuks"] for v in recent)
+    tarief_winkel = ((sum(v["verzend"] for v in recent) +
+                      sum(v["pickpack"] for v in recent)) / winkel_stuks
+                     if winkel_stuks else 0.0)
+
     def tarief(soort):
         maanden = sorted(m for m in gefactureerd
                          if any(fact_bedrag.get((m, e, soort)) for e in eans))
@@ -201,7 +223,10 @@ def bereken(ruw, instellingen, vandaag=None):
             stuks = sum(stuks_per_maand_ean.get((m, e), 0) for m in maanden for e in eans)
         return (kosten / stuks) if stuks else 0.0
 
-    tarief_pickpack = tarief("PICK_PACK") + tarief("SHIPMENT_LABEL")
+    # Het winkelbrede tarief gaat voor: dat is het enige dat verzenden bevat.
+    # Alleen als een bestand nog geen winkeltotalen heeft (van vóór deze
+    # wijziging) valt hij terug op het oude, te lage tarief uit de EAN-regels.
+    tarief_pickpack = tarief_winkel or (tarief("PICK_PACK") + tarief("SHIPMENT_LABEL"))
 
     # Opslag hangt aan voorraad, niet aan verkoop. Voor een maand die nog niet
     # gefactureerd is nemen we het gemiddelde van de laatste gefactureerde
@@ -446,6 +471,7 @@ def bereken(ruw, instellingen, vandaag=None):
         "voorraad": voorraad,
         "tarieven": {
             "pickpack_per_stuk": round(tarief_pickpack, 3),
+            "fulfilment_uit_winkel": bool(tarief_winkel),
             "gefactureerde_maanden": sorted(gefactureerd),
             "geschatte_maanden": schatting_maanden,
             "onvolledige_maanden": sorted(deel_maanden),
