@@ -402,9 +402,11 @@ function vOverzicht(){
     .filter(m => periode === "alles" || m === periode);
   if (onvolledig.length){
     html += '<div class="melding"><strong>Deels bekend.</strong> Van ' +
-      onvolledig.map(maandNaam).join(", ") + ' kennen we niet alle bestellingen ' +
-      '(bol geeft er maar drie maanden terug). De kosten van bol zijn daarom ' +
-      'meegeschaald met het deel dat we wél zien, zodat de marge klopt.</div>';
+      onvolledig.map(maandNaam).join(", ") + ' heeft bol méér stuks gefactureerd ' +
+      'dan er hier bestellingen van bekend zijn: bol geeft bestellingen ouder ' +
+      'dan drie maanden niet meer terug. Omzet en winst van die maand zijn dus ' +
+      'een ondergrens — wat er staat is echt verkocht, er hoort alleen meer ' +
+      'bij.</div>';
   }
   if ((D.fouten || []).length){
     html += '<div class="melding">Bij het laatste ophalen ging iets mis: ' +
