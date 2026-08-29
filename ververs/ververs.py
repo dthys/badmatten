@@ -329,6 +329,39 @@ def _bewaar_retour(retours, ret, eans):
 TYPES = ("TURNOVER", "COMMISSION", "PICK_PACK", "STORAGE", "SHIPMENT_LABEL",
          "CORRECTION_TURNOVER")
 
+# HET SOORT STAAT NIET ALTIJD IN DE REGEL-ID.
+#
+# Bol codeert het meestal als laatste stuk van de id (`...#TURNOVER`), maar in
+# de JSON-specificatie lang niet altijd: verzendregels en opslagregels kwamen
+# binnen zonder herkenbaar soort. Wat er dan nog staat is de omschrijving. Zonder
+# deze terugval verdween eerst alle verzendkosten en daarna alle opslag uit het
+# dashboard - allebei stil, want een ontbrekende kostenpost geeft geen foutmelding,
+# alleen een te mooie winst.
+OMSCHRIJVING_SOORT = (
+    ("pakketzegel", "SHIPMENT_LABEL"), ("verzend", "SHIPMENT_LABEL"),
+    ("pick", "PICK_PACK"),
+    ("voorraadkosten", "STORAGE"), ("opslag", "STORAGE"),
+    ("commissie", "COMMISSION"),
+    ("verkoopprijs", "TURNOVER"),
+)
+
+
+def _soort_van(regel):
+    """Het soort van een factuurregel, uit de id of anders uit de omschrijving."""
+    soort = regel.get("soort") or ""
+    if soort in TYPES:
+        return soort
+    omschrijving = (regel.get("omschrijving") or "").lower()
+    correctie = "correctie" in omschrijving
+    for stuk, gevonden in OMSCHRIJVING_SOORT:
+        if stuk in omschrijving:
+            if gevonden == "TURNOVER" and correctie:
+                return "CORRECTION_TURNOVER"
+            if gevonden == "COMMISSION" and correctie:
+                return "COMMISSION"
+            return gevonden
+    return soort
+
 
 def migreer_facturen(ruw):
     """
@@ -427,6 +460,7 @@ def haal_facturen(client, ruw, eans, maanden):
                     break
                 gezien.update(r["id"] for r in vers)
                 for r in vers:
+                    r["soort"] = _soort_van(r)
                     # VERZENDKOSTEN DRAGEN GEEN EAN.
                     #
                     # Bol rekent verzenden per ZENDING, niet per artikel: op dit
@@ -437,15 +471,9 @@ def haal_facturen(client, ruw, eans, maanden):
                     # de winkelbrede totalen apart geteld, vóór de filter, en
                     # daaruit komt een tarief per verkocht stuk - precies zoals
                     # de eigen app van de verkoper het doet.
-                    omschrijving = r.get("omschrijving") or ""
-                    is_verzend = (r["soort"] == "SHIPMENT_LABEL"
-                                  or "verzend" in omschrijving
-                                  or "pakketzegel" in omschrijving)
-                    is_pickpack = (r["soort"] == "PICK_PACK"
-                                   or "pick" in omschrijving)
-                    if is_verzend:
+                    if r["soort"] == "SHIPMENT_LABEL":
                         deze["winkel"]["verzend"] += abs(r["bedrag"])
-                    elif is_pickpack:
+                    elif r["soort"] == "PICK_PACK":
                         deze["winkel"]["pickpack"] += abs(r["bedrag"])
                     elif r["soort"] == "TURNOVER":
                         deze["winkel"]["stuks"] += r["aantal"]
@@ -482,6 +510,14 @@ def haal_facturen(client, ruw, eans, maanden):
                                    {"verzend": 0.0, "pickpack": 0.0, "stuks": 0.0})
         for veld in vak:
             vak[veld] += float(w.get(veld) or 0)
+    soorten = {}
+    for f in facturen.values():
+        for sleutel in (f.get("posten") or {}):
+            soort = sleutel.split("|", 1)[1]
+            soorten[soort] = soorten.get(soort, 0) + 1
+    if soorten:
+        log("  posten per soort: " +
+            ", ".join(f"{k} {v}" for k, v in sorted(soorten.items())))
     for maand in sorted(per_maand)[-4:]:
         v = per_maand[maand]
         if v["stuks"]:
