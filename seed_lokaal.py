@@ -165,7 +165,9 @@ def main():
 
     def vak(maand):
         return facturen.setdefault("overgezet:" + maand,
-                                   {"maand": maand, "posten": {}, "aantal": {}})
+                                   {"maand": maand, "posten": {}, "aantal": {},
+                                    "winkel": {"verzend": 0.0, "pickpack": 0.0,
+                                               "stuks": 0.0}})
 
     for r in conn.execute(f"""
             SELECT invoice_month, ean, transaction_type, SUM(amount) bedrag
@@ -188,6 +190,28 @@ def main():
              GROUP BY invoice_month, ean""", EANS):
         if r["aantal"]:
             vak(r["invoice_month"])["aantal"][r["ean"]] = round(float(r["aantal"]), 3)
+    # WINKELBREDE fulfilmenttotalen: alleen drie getallen per maand (verzenden,
+    # pick&pack, gefactureerde stuks). Verzendkosten staan op de factuur zonder
+    # EAN, dus zonder deze totalen kent het dashboard ze niet - zie rekenen.py.
+    # Er gaat geen enkel ander artikel mee in het bestand: dit zijn optellingen,
+    # geen regels.
+    for r in conn.execute("""
+            SELECT invoice_month m,
+              SUM(CASE WHEN transaction_type = 'SHIPMENT_LABEL'
+                         OR LOWER(COALESCE(description,'')) LIKE '%verzend%'
+                         OR LOWER(COALESCE(description,'')) LIKE '%pakketzegel%'
+                       THEN -amount ELSE 0 END) verzend,
+              SUM(CASE WHEN transaction_type = 'PICK_PACK'
+                         OR LOWER(COALESCE(description,'')) LIKE '%pick%'
+                       THEN -amount ELSE 0 END) pickpack,
+              SUM(CASE WHEN transaction_type = 'TURNOVER'
+                       THEN quantity ELSE 0 END) stuks
+            FROM invoice_lines WHERE invoice_month IS NOT NULL GROUP BY 1"""):
+        if not r["stuks"]:
+            continue
+        vak(r["m"])["winkel"] = {"verzend": round(float(r["verzend"] or 0), 2),
+                                 "pickpack": round(float(r["pickpack"] or 0), 2),
+                                 "stuks": round(float(r["stuks"]), 1)}
     ruw["facturen"] = facturen
 
     # ----------------------------------------------------------- voorraad

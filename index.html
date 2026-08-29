@@ -725,7 +725,7 @@ function vKosten(){
   const pct = v => t.omzet_excl ? komma(100*v/t.omzet_excl, 1) + "%" : "—";
   const posten = [
     ["Commissie bol", "commissie"], ["Inkoop matten", "inkoop"],
-    ["Fulfilment (pick & pack)", "pickpack"], ["Opslag bij bol", "opslag"],
+    ["Fulfilment (verzenden + pick&pack)", "pickpack"], ["Opslag bij bol", "opslag"],
     ["Advertenties", "ads"], ["Verlies op retours", "retour_verlies"],
   ];
 
@@ -764,8 +764,9 @@ function vKosten(){
     '<td class="num">' + komma(t.marge, 0) + '%</td></tr></tbody></table></div></div>';
 
   html += '<div class="melding"><strong>Hoe dit gerekend is.</strong> Omzet, stuks en ' +
-    'commissie komen uit de bestellingen zelf. Fulfilment is het tarief per stuk uit de ' +
-    'bolfacturen. Opslag komt van de maandfactuur en wordt over de dagen van de gekozen ' +
+    'commissie komen uit de bestellingen zelf. Fulfilment is verzenden én pick&pack: het ' +
+    'tarief per verkocht stuk uit de bolfacturen (bol rekent verzenden per zending, niet ' +
+    'per artikel, dus per stuk is het enige eerlijke). Opslag komt van de maandfactuur en wordt over de dagen van de gekozen ' +
     'periode verdeeld. Advertenties komen uit het dagrapport van bol, per artikel. Inkoop ' +
     'is de kostprijs maal het aantal verkochte stuks. Een verwerkte retour draait omzet en ' +
     'commissie terug; de mat komt terug op voorraad tenzij bol hem als verloren ' +
