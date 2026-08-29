@@ -157,20 +157,27 @@ def main():
     ruw["ads"] = dict(ads)
 
     # ----------------------------------------------------------- facturen
-    factuur = defaultdict(float)
+    # Per maand samengevat en weggeschreven als één "overgezette" factuur. Bol
+    # factureert per periode (meerdere per maand); die losse facturen kennen we
+    # hier niet meer, maar het TOTAAL per maand wel. Zodra de workflow de echte
+    # facturen van een maand ophaalt, vervangt hij deze samenvatting.
+    facturen = {}
+
+    def vak(maand):
+        return facturen.setdefault("overgezet:" + maand,
+                                   {"maand": maand, "posten": {}, "aantal": {}})
+
     for r in conn.execute(f"""
             SELECT invoice_month, ean, transaction_type, SUM(amount) bedrag
               FROM invoice_lines
              WHERE ean IN ({vraagtekens}) AND invoice_month IS NOT NULL
              GROUP BY invoice_month, ean, transaction_type""", EANS):
-        factuur[f"{r['invoice_month']}|{r['ean']}|{r['transaction_type']}"] = \
+        vak(r["invoice_month"])["posten"][f"{r['ean']}|{r['transaction_type']}"] = \
             round(float(r["bedrag"] or 0), 4)
-    ruw["factuur"] = dict(factuur)
 
     # Het aantal stuks dat bol factureerde, per maand per artikel. Dat is de
     # noemer voor het tarief per stuk en de maatstaf of we een maand volledig
     # kennen; zie rekenen.py.
-    aantallen = {}
     for r in conn.execute(f"""
             SELECT invoice_month, ean,
                    SUM(CASE WHEN transaction_type = 'TURNOVER' THEN quantity
@@ -180,8 +187,8 @@ def main():
              WHERE ean IN ({vraagtekens}) AND invoice_month IS NOT NULL
              GROUP BY invoice_month, ean""", EANS):
         if r["aantal"]:
-            aantallen[f"{r['invoice_month']}|{r['ean']}"] = round(float(r["aantal"]), 3)
-    ruw["factuur_aantal"] = aantallen
+            vak(r["invoice_month"])["aantal"][r["ean"]] = round(float(r["aantal"]), 3)
+    ruw["facturen"] = facturen
 
     # ----------------------------------------------------------- voorraad
     voorraad, voorraadlog = {}, {}
@@ -235,7 +242,7 @@ def main():
     print(f"\nDatabase : {db_pad}")
     print(f"Geschreven: {uit}  ({grootte / 1024:.0f} kB versleuteld)")
     print(f"Bestelregels {len(regels)}, retouren {len(retours)}, "
-          f"advertentiedagen {len(ruw['ads'])}, factuurposten {len(ruw['factuur'])}")
+          f"advertentiedagen {len(ruw['ads'])}, factuurmaanden {len(ruw['facturen'])}")
     print(f"Omzet excl. EUR {t['omzet_excl']:.2f} | winst EUR {t['winst']:.2f} | "
           f"{t['stuks']} stuks | {t['bestellingen']} bestellingen")
     print("\n--- Zet dit als GitHub-secret INSTELLINGEN (alles in één regel) ---")
