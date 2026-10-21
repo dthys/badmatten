@@ -9,6 +9,8 @@ fragment niet mee in het verzoek).
 
 De browser doet exact hetzelfde met WebCrypto, dus deze twee moeten gelijk
 blijven: PBKDF2-SHA256, 200.000 rondes, 32 bytes sleutel, 12 bytes IV.
+
+update
 """
 
 import base64
