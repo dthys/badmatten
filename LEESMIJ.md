@@ -2,7 +2,7 @@
 
 Een kaal, alleen-lezen dashboard voor de vier badmatten, dat je partner op zijn
 telefoon kan openen. Geen login, geen server, geen abonnement: GitHub haalt elk
-uur de cijfers bij bol op en zet ze op een webpagina. Hij ziet **alleen** deze
+kwartier de cijfers bij bol op en zet ze op een webpagina. Hij ziet **alleen** deze
 vier artikelen — de rest van je winkel komt er niet in voor, want alles wat niet
 bij deze EAN's hoort wordt weggegooid vóórdat er iets wordt opgeslagen.
 
@@ -16,7 +16,7 @@ bij deze EAN's hoort wordt weggegooid vóórdat er iets wordt opgeslagen.
 ## Hoe het in elkaar zit
 
 ```
-elk uur:  GitHub Actions  →  bol API  →  data.json (versleuteld)  →  GitHub Pages
+elk kwartier:  GitHub Actions  →  bol API  →  data.json (versleuteld)  →  GitHub Pages
 telefoon:  https://…github.io/badmatten/#s=JOUWCODE  →  ontsleutelt in de browser
 ```
 
@@ -37,7 +37,7 @@ dat ophalen niet, dan stopt de workflow — liever geen update dan een lege
 historie.
 
 **Er wordt niets naar de repo gecommit.** Versleutelde bytes zijn elke ronde
-volledig anders, ook als er inhoudelijk niets veranderde. Elk uur committen zou
+volledig anders, ook als er inhoudelijk niets veranderde. Elk kwartier committen zou
 de repo in een jaar naar een gigabyte laten groeien. De workflow publiceert
 daarom rechtstreeks naar Pages.
 
@@ -94,7 +94,7 @@ git push
 ### 4. Secrets zetten
 
 GitHub → je repo → **Settings** → **Secrets and variables** → **Actions** →
-*New repository secret*. Vijf stuks:
+*New repository secret*. Zes stuks:
 
 | Naam | Waarde |
 |---|---|
@@ -117,7 +117,8 @@ gewoon door en blijven alleen de advertentiekosten op nul staan.
 
 **Actions** → *Cijfers verversen* → **Run workflow**. Duurt de eerste keer wat
 langer (hij haalt dan ook de facturen tot twee jaar terug en de
-advertentiehistorie op). Daarna gaat het vanzelf, elk uur.
+advertentiehistorie op). Daarna gaat het vanzelf. Wil je dat het ook echt elk kwartier
+gebeurt, zet dan stap 8 op.
 
 ### 7. De link doorsturen
 
@@ -128,6 +129,44 @@ https://dthys.github.io/badmatten/#s=JOUWCODE
 Zeg erbij dat hij hem moet bewaren als bladwijzer, of — netter op een telefoon —
 op het beginscherm zetten: Safari → deelknop → *Zet op beginscherm*; Chrome →
 menu → *Toevoegen aan startscherm*. Hij opent dan als een app.
+
+### 8. Sneller verversen (aanrader)
+
+De workflow vraagt GitHub om elk kwartier te draaien, maar GitHub slaat
+geplande runs op een gratis publieke repo vaak over: met "elk uur" kwamen er
+in de praktijk maar drie tot vijf rondes per dag door. Runs die je via de API
+start worden níét overgeslagen. Een gratis cron-dienst lost het dus op.
+
+**a. Token maken.** GitHub → je profielfoto → **Settings** → **Developer
+settings** → **Personal access tokens** → **Fine-grained tokens** →
+*Generate new token*.
+
+- *Repository access*: **Only select repositories** → `badmatten`
+- *Permissions* → *Repository permissions* → **Actions: Read and write**
+- *Expiration*: zo lang als je wilt (max. een jaar; zet een herinnering)
+
+Kopieer de token (`github_pat_…`). Dit token kan alleen workflows van deze ene
+repo starten, verder niets.
+
+**b. Cron-job aanmaken** op [cron-job.org](https://cron-job.org) (gratis
+account) → *Create cronjob*:
+
+| Veld | Waarde |
+|---|---|
+| URL | `https://api.github.com/repos/dthys/badmatten/actions/workflows/ververs.yml/dispatches` |
+| Schedule | elke 15 minuten |
+| *Advanced* → Request method | `POST` |
+| *Advanced* → Headers | `Authorization: Bearer github_pat_…` |
+| | `Accept: application/vnd.github+json` |
+| | `Content-Type: application/json` |
+| *Advanced* → Request body | `{"ref":"main"}` |
+
+Opslaan en op *Test run* klikken: het antwoord moet **204** zijn, en in
+**Actions** verschijnt meteen een nieuwe run. Een 401 of 403 betekent dat de
+token of zijn rechten niet kloppen; een 404 dat de URL of de repo-toegang van
+de token niet klopt.
+
+Twee runs tegelijk kan niet: de workflow wacht dan netjes op de vorige.
 
 ## Onderhoud
 
@@ -194,5 +233,5 @@ hier nooit kosten die niet echt van deze matten zijn.
 | `ververs/rekenen.py` | de berekening hierboven |
 | `ververs/kluis.py` | de versleuteling |
 | `seed_lokaal.py` | eenmalig: historie uit je eigen database overzetten |
-| `.github/workflows/ververs.yml` | het uurritme en het publiceren |
+| `.github/workflows/ververs.yml` | het ververs-ritme en het publiceren |
 | `instellingen-voorbeeld.json` | hoe het secret `INSTELLINGEN` eruitziet |

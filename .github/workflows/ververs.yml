@@ -16,13 +16,17 @@ name: Cijfers verversen
 # De vorige stand wordt aan het begin van de site zelf teruggehaald - dat is
 # meteen de historie, want bol bewaart bestellingen maar drie maanden.
 #
-# GitHub voert geplande workflows onder drukte later uit dan gevraagd; een
-# kwartier vertraging is normaal en geen storing.
+# GitHub voert geplande workflows onder drukte later uit dan gevraagd, en slaat
+# ze op een gratis publieke repo vaak helemaal over: met "elk uur" kwamen er in
+# de praktijk maar drie tot vijf rondes per dag door. Daarom vragen we elk
+# kwartier (meer pogingen = meer rondes die doorkomen), en kan een externe
+# cron-dienst de workflow via de API starten - die runs slaat GitHub niet over.
+# Zie "Sneller verversen" in LEESMIJ.md.
 
 on:
   schedule:
-    - cron: "17 * * * *"      # elk uur op :17 (UTC)
-  workflow_dispatch:           # ook handmatig te starten via de knop Run workflow
+    - cron: "7,22,37,52 * * * *"   # elk kwartier (UTC), niet op :00 - dan is het het drukst
+  workflow_dispatch:           # handmatig (knop Run workflow) of via de API door een cron-dienst
     inputs:
       bron:
         description: "Waar begint deze ronde mee?"
